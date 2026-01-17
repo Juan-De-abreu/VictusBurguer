@@ -1,9 +1,11 @@
-import React from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Header = () => {
+  useState(false);
+  
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md shadow-lg border-b border-red-500/30 text-2xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black lg:bg-white/10 backdrop-blur-md shadow-lg border-b border-red-500/30 text-2xl">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex justify-between items-center h-20 lg:h-24">
           {/* Logo */}
@@ -16,10 +18,10 @@ const Header = () => {
 
           {/* Botón hamburguesa móvil */}
           <button 
-            className="lg:hidden p-2 rounded-md hover:bg-red-50 transition-colors"
+            className="lg:hidden p-2 rounded-md  transition-colors"
             aria-label="Toggle navigation"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-10 h-10 text-red-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -30,7 +32,7 @@ const Header = () => {
               <li>
                 <Link 
                   to="/" 
-                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-white hover:scale-105 border-b hover:text-red-600  rounded-lg transition-all duration-200 group"
                 >
                   Inicio
                   <svg className="ml-2 w-6 h-6 group-hover:scale-110 transition-transform desaparecerA" fill="currentColor" viewBox="0 0 24 24">
@@ -42,7 +44,7 @@ const Header = () => {
               <li>
                 <Link 
                   to="/ComidaRapida" 
-                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-white hover:scale-105 border-b hover:text-red-600  rounded-lg transition-all duration-200 group"
                 >
                   Comida rapida
                   <svg className="ml-2 w-6 h-6 group-hover:scale-110 transition-transform desaparecerA" fill="currentColor" viewBox="0 0 24 24">
@@ -55,7 +57,7 @@ const Header = () => {
               <li>
                 <Link 
                   to="/Desayunos" 
-                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-white hover:scale-105 border-b hover:text-red-600  rounded-lg transition-all duration-200 group"
                 >
                   Desayunos
                   <svg className="ml-2 w-6 h-6 group-hover:scale-110 transition-transform desaparecerA" fill="currentColor" viewBox="0 0 24 24">
@@ -69,7 +71,7 @@ const Header = () => {
               <li>
                 <Link 
                   to="/Almuerzos" 
-                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                  className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-white hover:scale-105 border-b hover:text-red-600  rounded-lg transition-all duration-200 group"
                 >
                   Almuerzos
                   <svg className="ml-2 w-6 h-6 group-hover:scale-110 transition-transform desaparecerA" fill="currentColor" viewBox="0 0 24 24">
@@ -86,7 +88,7 @@ const Header = () => {
             href="https://www.instagram.com/papasburger_2009?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden md:flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold text-lg px-6 py-2 rounded-full shadow-lg hover:shadow-red-500/50 transition-all duration-300 ml-8 whitespace-nowrap"
+            className="hidden lg:flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold text-lg px-6 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
           >
             Contactanos
             <img 
