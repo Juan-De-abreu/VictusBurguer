@@ -19,7 +19,7 @@ const Hero = () => {
         {/* Contenido centrado */}
         <div className="relative z-20 text-center text-white max-w-5xl mx-auto px-4">
           <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-9xl font-serif italic mb-4 md:mb-6 drop-shadow-2xl leading-tight">
-            <span className="text-5xl md:text-7xl lg:text-9xl text-[#FF4500]">V</span>ictu<span className="text-[#FF4500]">’</span>s <span className='text-[#FF4500]'>B</span>urguers
+            <span className={`text-5xl md:text-7xl lg:text-9xl text-[var(--segundario)]`}>V</span>ictu<span className="text-[var(--segundario)]">’</span>s <span className='text-[var(--segundario)]'>B</span>urguers
           </h1>
           
           <h4 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif italic mb-6 md:mb-8 drop-shadow-xl leading-tight">
@@ -29,8 +29,8 @@ const Hero = () => {
           <p className="text-md sm:text-lg md:text-xl mb-8 md:mb-12 font-light drop-shadow-lg max-w-2xl mx-auto leading-relaxed">
 transforma cada comida en una experiencia dorada que no olvidarás jamás.          </p>
           
-          <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 md:py-4 md:px-12 rounded-full text-lg md:text-2xl shadow-2xl hover:shadow-red-500/50 transition-all duration-300 transform hover:-translate-y-1 drop-shadow-2xl">
-            Únete ahora
+          <button className="bg-red-900 hover:bg-[var(--segundario)] text-[var(--letra)] font-bold py-3 px-8 md:py-4 md:px-12 rounded-full text-lg md:text-2xl hover:shadow-lg shadow-red-900 transition-all duration-300 transform hover:-translate-y-1 ">
+            Ver Menú
           </button>
         </div>
       </section>
