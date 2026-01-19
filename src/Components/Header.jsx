@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -17,69 +17,166 @@ const Header = () => {
     {
       to: "/Almuerzos",
       label: "Almuerzos",
-      svg: `<path d="m14,2h-2v7h-2V2h-2v7h-2V2h-2v8c0,1.65,1.35,3,3,3h1v9h2v-9h1c1.65,0,3-1.35,3-3V2Z"/><path d="m17,13h1v9h2V3c0-.55-.45-1-1-1-1.65,0-3,1.35-3,3v7c0,.55.45,1,1,1Z">`,  // ✅ SVG COMPLETO
+      svg: `<path d="m14,2h-2v7h-2V2h-2v7h-2V2h-2v8c0,1.65,1.35,3,3,3h1v9h2v-9h1c1.65,0,3-1.35,3-3V2Z"/><path d="m17,13h1v9h2V3c0-.55-.45-1-1-1-1.65,0-3,1.35-3,3v7c0,.55.45,1,1,1Z">`,
     },
   ];
+  
+  const [MenuisOpen, setMenuIsOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const toggleMenu = () => {
+    setMenuIsOpen(!MenuisOpen);
+  };
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (MenuisOpen && menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [MenuisOpen]);
+
+  // Cerrar menú al hacer scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (MenuisOpen) {
+        setMenuIsOpen(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [MenuisOpen]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black lg:bg-white/10 backdrop-blur-md shadow-lg border-b border-red-500/30 text-2xl">
-      <div className="container mx-auto px-4 lg:px-6">
-        <div className="flex justify-between items-center h-20 lg:h-24">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="text-3xl lg:text-4xl font-serif italic font-bold text-red-600 hover:text-red-500 transition-colors duration-300"
-          >
-            Victu's Burgers
-          </Link>
+    <>
+      <nav 
+        ref={menuRef}
+        className="fixed top-0 left-0 right-0 z-50 bg-[var(--primario)] backdrop-blur-md shadow-lg border-b border-red-500/30 text-2xl"
+      >
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex justify-between items-center h-20 lg:h-24">
+            {/* Logo */}
+            <Link
+              to="/"
+              className="text-3xl lg:text-4xl font-serif italic font-bold text-red-600 hover:text-red-500 transition-colors duration-300"
+            >
+              Victu's Burgers
+            </Link>
 
-          {/* Botón hamburguesa móvil */}
-          <button className="lg:hidden p-2 rounded-md transition-colors" aria-label="Toggle navigation">
-            <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            {/* Botón hamburguesa móvil */}
+            <button 
+              className="lg:hidden p-2 rounded-md transition-all duration-300 hover:bg-red-600/20"
+              onClick={toggleMenu}
+              aria-label="Toggle navigation"
+            >
+              <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  className={`${MenuisOpen ? 'hidden' : ''}`}
+                  d="M4 6h16M4 12h16M4 18h16" 
+                />
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  className={`${MenuisOpen ? '' : 'hidden'}`}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
 
-          {/* Menú desktop */}
-          <div className="hidden lg:flex flex-grow justify-center items-center space-x-1">
-            <ul className="flex space-x-1 mx-auto">
-              {botones.map((boton) => (
-                <li key={boton.to}>
-                  <Link
-                    to={boton.to}
-                    className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-[var(--letra)] hover:scale-105 hover:text-red-600 border-b-2 border-transparent hover:border-red-500 rounded-lg transition-all duration-200 group"
-                  >
-                    {boton.label}
-                    {boton.svg !== `` && (
-                      <svg
-                        className="w-6 h-6 ml-2 group-hover:scale-110 transition-transform fill-current"
-                        viewBox="0 0 24 24"
-                        dangerouslySetInnerHTML={{ __html: boton.svg }}
-                      />
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* Menú desktop */}
+            <div className="hidden lg:flex flex-grow justify-center items-center space-x-1 ">
+              <ul className="flex space-x-1 mx-auto">
+                {botones.map((boton) => (
+                  <li key={boton.to}>
+                    <Link
+                      to={boton.to}
+                      className="flex items-center px-4 py-2 mx-1 text-xl font-medium text-[var(--letra)] hover:scale-105 hover:text-red-600 border-b-2 border-transparent hover:border-red-500 rounded-lg transition-all duration-200 group"
+                    >
+                      {boton.label}
+                      {boton.svg !== `` && (
+                        <svg
+                          className="w-6 h-6 ml-2 group-hover:scale-110 transition-transform fill-current"
+                          viewBox="0 0 24 24"
+                          dangerouslySetInnerHTML={{ __html: boton.svg }}
+                        />
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Botón Instagram */}
+            <a
+              href=""
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center bg-red-900 hover:bg-[var(--segundario)]/80 text-white font-semibold text-lg px-6 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
+            >
+              Contactanos
+              <img 
+                className={`ml-2 w-6 h-6 bg-gradient-to-br from-[#405DE6] via-[#E1306C] to-[#F77737] rounded-lg`}
+                src="/src/assets/instagram.svg" 
+                alt="instagram"           
+              />      
+            </a>
           </div>
 
-          {/* Botón Instagram */}
-          <a
-            href=""
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden lg:flex items-center bg-red-900 hover:bg-[var(--segundario)] text-white font-semibold text-lg px-6 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
+          {/* Menú móvil desplegable */}
+          <div 
+            className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+              MenuisOpen 
+                ? 'max-h-96 opacity-100 visible' 
+                : 'max-h-0 opacity-0 invisible'
+            }`}
           >
-            Contactanos
-            <img 
-              className="ml-2 w-6 h-6" 
-              src="/src/assets/instagram.svg" 
-              alt="instagram"           
-            />      
-          </a>
+            <div className="bg-[var(--primario)]/95  backdrop-blur-md border-t border-red-500/30 pt-4 pb-8">
+              <ul className="space-y-2 px-4">
+                {botones.map((boton) => (
+                  <li key={boton.to}>
+                    <Link
+                      to={boton.to}
+                      className="flex items-center py-3 px-4 text-xl text-[var(--letra)] hover:bg-red-600/20 hover:scale-105 rounded-xl transition-all duration-200"
+                      onClick={() => setMenuIsOpen(false)}
+                    >
+                      {boton.label}
+                      {boton.svg !== `` && (
+                        <svg
+                          className="w-8 h-8 ml-4 fill-current"
+                          viewBox="0 0 24 24"
+                          dangerouslySetInnerHTML={{ __html: boton.svg }}
+                        />
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Overlay transparente para cerrar al tocar fuera (solo móvil) */}
+      {MenuisOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+          onClick={() => setMenuIsOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

@@ -1,7 +1,18 @@
 @import "tailwindcss";
 :root {
-  --primario: #191921;
+  --primario: #181818;
   --segundario: #d7023c;
-  --letra: #d4d4d4;
-  --body: #272228;
+  --letra: #eeebeb;
+  --body: #1a1919;
+  --body2: #2a1313;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --elegante: 'Playfair Display', Georgia, serif;
+  --legible: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+*{
+  font-family: var(--elegante);
 }

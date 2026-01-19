@@ -6,7 +6,7 @@ const Hero = () => {
       {/* Header tiene fixed top, por eso el padding-top */}
       <div className="pt-16 md:pt-24"></div>
       
-      <section className="relative bg-gradient-to-b from-gray-900/90 to-black/90 overflow-hidden h-[70vh] sm:h-[80vh] md:h-screen max-h-[600px] lg:max-h-[700px] flex items-center justify-center px-4">
+      <section className="relative bg-gradient-to-b from-gray-900/90 to-black/90 overflow-hidden h-screen max-h-[600px] lg:max-h-[700px] flex items-center justify-center px-4">
         {/* Fondo fijo - NO REPITE */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed opacity-70"
@@ -29,9 +29,9 @@ const Hero = () => {
           <p className="text-md sm:text-lg md:text-xl mb-8 md:mb-12 font-light drop-shadow-lg max-w-2xl mx-auto leading-relaxed">
 transforma cada comida en una experiencia dorada que no olvidarás jamás.          </p>
           
-          <button className="bg-red-900 hover:bg-[var(--segundario)] text-[var(--letra)] font-bold py-3 px-8 md:py-4 md:px-12 rounded-full text-lg md:text-2xl hover:shadow-lg shadow-red-900 transition-all duration-300 transform hover:-translate-y-1 ">
+          <a href='#menucards' className="bg-red-900 hover:bg-[var(--segundario)]/70 hover:scale-102 text-[var(--letra)] font-bold py-3 px-8 md:py-4 md:px-12 rounded-full text-lg md:text-2xl hover:shadow-lg shadow-red-900 transition-all duration-300 transform hover:-translate-y-1 ">
             Ver Menú
-          </button>
+          </a>
         </div>
       </section>
     </>
