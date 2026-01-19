@@ -27,6 +27,6 @@ vite+ReactJS+Mysql+tailwind
 
 # Actualizaciones
 
-## 19/1/2026 18:31
- -fontsfamily
- -Cardmenu
+### 19/1/2026 18:31
+ - fontsfamily
+ - Cardmenu
