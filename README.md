@@ -1,16 +1,37 @@
-# React + Vite
+# Victu's Burgers - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Victu's Burgers](https://via.placeholder.com/1200x630/DC2626/FFFFFF?text=Victu%27s+Burgers)
 
-Currently, two official plugins are available:
+## ✨ Descripción
+Sitio web responsive de restaurante **Victu's Burgers** con menú hamburguesa móvil, cards elegantes, animaciones fluidas y scroll suave.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Tecnologías
+vite+ReactJS+Mysql+tailwind
 
-## React Compiler
+## 🎨 **Variables de Color (CSS Custom Properties)**
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+css
+:root {
+  --primario: #181818;     /* Fondo principal oscuro */
+  --segundario: #d7023c;   /* Rojo vibrante hover/CTA */
+  --letra: #eeebeb;        /* Texto claro principal */
+  --body: #1a1919;         /* Fondo body sutil */
+  --body2: #2a1313;        /* Fondo secundario oscuro */
+}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-## Expanding the ESLint configuration
+:root {
+  --elegante: 'Playfair Display', Georgia, serif;
+  --legible: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* { font-family: var(--elegante); }
+
+npm run dev      # 🚀 localhost:3000
+npm run build    # ⚡ Build producción
+npm run preview  # 👀 Preview build
+
+##Actualizaciones
+#19/1/2026 18:31
+- fontsfamily
+- Cardmenu
