@@ -17,13 +17,11 @@ vite+ReactJS+Mysql+tailwind
   - body: #1a1919;         /* Fondo body sutil */
   - body2: #2a1313;        /* Fondo secundario oscuro */
 
-## tipo de letras
+## tipo de letras (todo esta en font elegante a menos que sea necesario)
 
   - elegante: 'Playfair Display', Georgia, serif;
   - legible: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-
-- * { font-family: var(--elegante); } 
 
 # Actualizaciones
 
