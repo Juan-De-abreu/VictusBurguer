@@ -13,7 +13,7 @@ const Header = () => {
             to="/" 
             className="text-3xl lg:text-4xl font-serif italic font-bold text-red-600 hover:text-red-700 transition-colors font-papasburger"
           >
-            Victus Burgeres
+            Victu's Burgers
           </Link>
 
           {/* Botón hamburguesa móvil */}
@@ -94,7 +94,8 @@ const Header = () => {
             <img 
               className="ml-2 w-6 h-6" 
               src="/src/assets/instagram.svg" 
-              alt="Instagram" 
+              alt="instagram"
+              
             />
           </a>
         </div>
