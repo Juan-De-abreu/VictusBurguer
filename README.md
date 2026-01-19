@@ -10,14 +10,14 @@ vite+ReactJS+Mysql+tailwind
 
 ## 🎨 **Variables de Color (CSS Custom Properties)**
 
-css
+
   -primario: #181818;     /* Fondo principal oscuro */
   -segundario: #d7023c;   /* Rojo vibrante hover/CTA */
   -letra: #eeebeb;        /* Texto claro principal */
   -body: #1a1919;         /* Fondo body sutil */
   -body2: #2a1313;        /* Fondo secundario oscuro */
 
--@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+## tipo de letras
 
   - elegante: 'Playfair Display', Georgia, serif;
   - legible: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
