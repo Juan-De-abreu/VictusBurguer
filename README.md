@@ -11,11 +11,11 @@ vite+ReactJS+Mysql+tailwind
 ## 🎨 **Variables de Color (CSS Custom Properties)**
 
 
-  -primario: #181818;     /* Fondo principal oscuro */
-  -segundario: #d7023c;   /* Rojo vibrante hover/CTA */
-  -letra: #eeebeb;        /* Texto claro principal */
-  -body: #1a1919;         /* Fondo body sutil */
-  -body2: #2a1313;        /* Fondo secundario oscuro */
+  - primario: #181818;     /* Fondo principal oscuro */
+  - segundario: #d7023c;   /* Rojo vibrante hover/CTA */
+  - letra: #eeebeb;        /* Texto claro principal */
+  - body: #1a1919;         /* Fondo body sutil */
+  - body2: #2a1313;        /* Fondo secundario oscuro */
 
 ## tipo de letras
 
@@ -25,11 +25,8 @@ vite+ReactJS+Mysql+tailwind
 
 - * { font-family: var(--elegante); } 
 
--npm run dev      # 🚀 localhost:3000
--npm run build    # ⚡ Build producción
--npm run preview  # 👀 Preview build
-
 # Actualizaciones
+
 ## 19/1/2026 18:31
  -fontsfamily
  -Cardmenu
