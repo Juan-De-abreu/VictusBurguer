@@ -3,10 +3,10 @@
 ![Victu's Burgers](https://via.placeholder.com/1200x630/DC2626/FFFFFF?text=Victu%27s+Burgers)
 
 # ✨ Descripción
-Sitio web responsive de restaurante **Victu's Burgers** con menú hamburguesa móvil, cards elegantes, animaciones fluidas y scroll suave.
+Sitio web responsive de restaurante **Victu's Burgers** con menú hamburguesa móvil, cards elegantes, animaciones fluidas.
 
 # 🚀 Tecnologías
-vite+ReactJS+Mysql+tailwind
+* vite+ReactJS+Mysql+tailwind
 
 ## 🎨 **Variables de Color (CSS Custom Properties)**
 
