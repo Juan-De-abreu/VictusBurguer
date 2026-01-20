@@ -1,0 +1,354 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Servidor: localhost:3306
+-- Tiempo de generación: 20-01-2026 a las 14:30:22
+-- Versión del servidor: 8.4.3
+-- Versión de PHP: 8.3.16
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `dbburguer`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `addresses`
+--
+
+CREATE TABLE `addresses` (
+  `address_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `calle` varchar(255) NOT NULL,
+  `ciudad` varchar(100) NOT NULL,
+  `latitud` decimal(10,8) DEFAULT NULL,
+  `longitud` decimal(11,8) DEFAULT NULL,
+  `referencia` text
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `addresses`
+--
+
+INSERT INTO `addresses` (`address_id`, `user_id`, `calle`, `ciudad`, `latitud`, `longitud`, `referencia`) VALUES
+(1, 1, 'Calle D, Manzana F, Urb. La Esmeralda', 'San Diego', 10.24351200, -67.95421000, 'Casa de portón blanco frente al parque, tiene un árbol de mango afuera.'),
+(2, 2, 'Av. Principal, Conjunto Residencial El Remanso', 'San Diego', 10.25100200, -67.94880100, 'Edificio A, Piso 3, Apto 3-B. Tocar intercomunicador #32.'),
+(3, 3, 'Vereda 8, Urb. Los Jarales', 'San Diego', 10.22984500, -67.96123400, 'Casa color azul, rejas negras. Al lado de la bodega.'),
+(4, 4, 'Av. Don Julio Centeno, CC Fin de Siglo', 'San Diego', 10.23567800, -67.95912300, 'Entregar en la entrada principal del banco, llamar al llegar.'),
+(5, 5, 'Av. Andrés Eloy Blanco, Res. Laste', 'Valencia', 10.21567800, -68.00123400, 'Dejar en vigilancia. Decir que es para la familia Rodríguez.'),
+(6, 6, 'Calle 140, Urb. El Morro II', 'San Diego', 10.23123400, -67.95111100, 'Casa de esquina color beige. Cuidado con el perro.'),
+(7, 7, 'Calle Los Pinos, Res. Monteserino 12', 'San Diego', 10.23890100, -67.95678900, 'Torre B, Planta Baja. El timbre no sirve, por favor llamar.'),
+(8, 8, 'Calle 90, Res. Portales de Shalimar', 'Valencia', 10.22234500, -68.01234500, 'Entregar al guardia de seguridad en la garita.'),
+(9, 9, 'Av. Universidad, Campus UJAP', 'San Diego', 10.24890000, -67.94560000, 'Entregar en la entrada peatonal frente al estacionamiento.'),
+(10, 10, 'Calle Real de Campo Solo', 'San Diego', 10.25567800, -67.96543200, 'Casa amarilla de dos pisos, puerta de madera.');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `categories`
+--
+
+CREATE TABLE `categories` (
+  `category_id` int NOT NULL,
+  `nombre_categoria` enum('desayuno','almuerzo','cena') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `nombre_categoria`) VALUES
+(1, 'desayuno'),
+(2, 'almuerzo'),
+(3, 'cena');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `drivers`
+--
+
+CREATE TABLE `drivers` (
+  `driver_id` int NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `foto_url` varchar(255) DEFAULT NULL,
+  `vehiculo` varchar(50) DEFAULT NULL,
+  `latitud_actual` decimal(10,8) DEFAULT NULL,
+  `longitud_actual` decimal(11,8) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `drivers`
+--
+
+INSERT INTO `drivers` (`driver_id`, `nombre`, `foto_url`, `vehiculo`, `latitud_actual`, `longitud_actual`) VALUES
+(1, 'Jose Martinez', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jose', 'Moto Empire Keeway', 10.25050000, -67.94500000),
+(2, 'Alejandro Silva', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alejandro', 'Moto Suzuki', 10.21500000, -67.94000000),
+(3, 'Ricardo Gomez', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ricardo', 'Bicicleta', 10.23200000, -67.95800000),
+(4, 'Luis Rodriguez', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Luis', 'Moto Honda', 10.25500000, -67.94800000),
+(5, 'Daniel Blanco', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel', 'Moto Yamaha', 10.25800000, -67.96100000);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `orders`
+--
+
+CREATE TABLE `orders` (
+  `order_id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `address_id` int DEFAULT NULL,
+  `driver_id` int DEFAULT NULL,
+  `total` decimal(10,2) NOT NULL,
+  `metodo_pago` varchar(50) DEFAULT NULL,
+  `status` enum('pendiente','preparando','en camino','entregado','cancelado') DEFAULT 'pendiente',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `address_id`, `driver_id`, `total`, `metodo_pago`, `status`, `created_at`) VALUES
+(1, 1, 1, 1, 15.50, 'Pago Móvil', 'entregado', '2026-01-20 14:26:14'),
+(2, 2, 2, 2, 22.50, 'Efectivo', 'en camino', '2026-01-20 14:26:14'),
+(3, 3, 3, NULL, 9.50, 'Zelle', 'preparando', '2026-01-20 14:26:14'),
+(4, 5, 5, NULL, 14.00, 'Tarjeta de Débito', 'pendiente', '2026-01-20 14:26:14'),
+(5, 9, 9, NULL, 4.00, 'Pago Móvil', 'cancelado', '2026-01-20 14:26:14');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `order_item_id` int NOT NULL,
+  `order_id` int DEFAULT NULL,
+  `product_id` int DEFAULT NULL,
+  `cantidad` int NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `order_items`
+--
+
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `cantidad`, `precio_unitario`) VALUES
+(1, 1, 6, 1, 10.00),
+(2, 1, 1, 1, 5.50),
+(3, 2, 7, 1, 14.00),
+(4, 2, 4, 1, 8.50),
+(5, 3, 9, 1, 9.50),
+(6, 4, 7, 1, 14.00),
+(7, 5, 10, 1, 4.00);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `products`
+--
+
+CREATE TABLE `products` (
+  `product_id` int NOT NULL,
+  `category_id` int DEFAULT NULL,
+  `nombre` varchar(150) NOT NULL,
+  `descripcion` text,
+  `precio` decimal(10,2) NOT NULL,
+  `is_trending` tinyint(1) DEFAULT '0',
+  `image_url` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `products`
+--
+
+INSERT INTO `products` (`product_id`, `category_id`, `nombre`, `descripcion`, `precio`, `is_trending`, `image_url`) VALUES
+(1, 1, 'Arepa Pabellón', 'Arepa rellena con carne mechada, caraotas negras, tajadas y queso blanco rallado.', 5.50, 1, 'https://img.dbburguer.com/desayunos/arepa_pabellon.jpg'),
+(2, 1, 'Desayuno Americano', 'Dos huevos fritos, tocineta crujiente, pan tostado y mermelada de la casa.', 7.00, 0, 'https://img.dbburguer.com/desayunos/americano.jpg'),
+(3, 1, 'Empanadas Trio', 'Set de 3 empanadas (queso, carne y pollo) acompañadas con salsa guasacaca.', 4.50, 1, 'https://img.dbburguer.com/desayunos/empanadas.jpg'),
+(4, 2, 'Burger Clásica', 'Carne de res 150g, queso cheddar, lechuga fresh, tomate y cebolla morada.', 8.50, 0, 'https://img.dbburguer.com/almuerzos/burger_clasica.jpg'),
+(5, 2, 'Crispy Chicken Sandwich', 'Pechuga de pollo apanada, salsa de miel y mostaza, pepinillos y pan brioche.', 9.00, 1, 'https://img.dbburguer.com/almuerzos/chicken_crispy.jpg'),
+(6, 2, 'Combo Ejecutivo Burguer', 'Hamburguesa sencilla con papas fritas y bebida de 350ml.', 10.00, 0, 'https://img.dbburguer.com/almuerzos/combo_ejecutivo.jpg'),
+(7, 3, 'The Monster Burguer', 'Doble carne de res (300g total), doble tocino, huevo frito, aros de cebolla y salsa especial.', 14.00, 1, 'https://img.dbburguer.com/cenas/monster_burguer.jpg'),
+(8, 3, 'BBQ Bacon Burguer', 'Carne de res, bañado en salsa BBQ artesanal, cebolla caramelizada y mucho tocino.', 11.50, 1, 'https://img.dbburguer.com/cenas/bbq_bacon.jpg'),
+(9, 3, 'Salchipapa Especial', 'Cama de papas fritas con salchicha troceada, queso fundido, maíz tierno y salsas.', 9.50, 0, 'https://img.dbburguer.com/cenas/salchipapa.jpg'),
+(10, 3, 'Perro Caliente Especial', 'Salchicha de primera, cebolla picadita, papas ralladas, queso parmesano y trío de salsas.', 4.00, 0, 'https://img.dbburguer.com/cenas/perro_especial.jpg');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `users`
+--
+
+CREATE TABLE `users` (
+  `user_id` int NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Volcado de datos para la tabla `users`
+--
+
+INSERT INTO `users` (`user_id`, `nombre`, `email`, `password`, `telefono`, `created_at`) VALUES
+(1, 'Juan Pérez', 'juan.perez@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0414-1234567', '2026-01-20 14:10:46'),
+(2, 'María Rodríguez', 'maria.rod@hotmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0412-9876543', '2026-01-20 14:10:46'),
+(3, 'Carlos González', 'carlos.gonzalez@yahoo.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0424-4567890', '2026-01-20 14:10:46'),
+(4, 'Ana Martínez', 'ana.martinez@outlook.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0416-1122334', '2026-01-20 14:10:46'),
+(5, 'Luis Hernández', 'luis.hernandez@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0414-5556677', '2026-01-20 14:10:46'),
+(6, 'Elena Gómez', 'elena.gomez@empresa.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0412-3344556', '2026-01-20 14:10:46'),
+(7, 'Miguel Torres', 'miguel.torres@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0424-9988776', '2026-01-20 14:10:46'),
+(8, 'Laura Díaz', 'laura.diaz@icloud.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0414-2223344', '2026-01-20 14:10:46'),
+(9, 'David Ruiz', 'david.ruiz@ujap.edu.ve', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0412-7778899', '2026-01-20 14:10:46'),
+(10, 'Sofía Castro', 'sofia.castro@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0416-0001122', '2026-01-20 14:10:46');
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `addresses`
+--
+ALTER TABLE `addresses`
+  ADD PRIMARY KEY (`address_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indices de la tabla `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indices de la tabla `drivers`
+--
+ALTER TABLE `drivers`
+  ADD PRIMARY KEY (`driver_id`);
+
+--
+-- Indices de la tabla `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`order_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `address_id` (`address_id`),
+  ADD KEY `driver_id` (`driver_id`);
+
+--
+-- Indices de la tabla `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`order_item_id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `product_id` (`product_id`);
+
+--
+-- Indices de la tabla `products`
+--
+ALTER TABLE `products`
+  ADD PRIMARY KEY (`product_id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- Indices de la tabla `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `addresses`
+--
+ALTER TABLE `addresses`
+  MODIFY `address_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `category_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `drivers`
+--
+ALTER TABLE `drivers`
+  MODIFY `driver_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `order_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `order_item_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `products`
+--
+ALTER TABLE `products`
+  MODIFY `product_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `addresses`
+--
+ALTER TABLE `addresses`
+  ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`address_id`),
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`driver_id`);
+
+--
+-- Filtros para la tabla `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
+
+--
+-- Filtros para la tabla `products`
+--
+ALTER TABLE `products`
+  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
