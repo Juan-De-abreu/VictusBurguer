@@ -1,0 +1,14 @@
+# .htaccess (RAÍZ victus-backend/)
+RewriteEngine On
+RewriteBase /victus-backend/
+
+# 🔑 REDIRECCIÓN: /api → public/index.html
+RewriteRule ^api/?$ public/index.html [L]
+
+# API endpoints específicos
+RewriteRule ^api/([a-zA-Z0-9_]+)/?$ api/$1.php [L,QSA]
+
+# Fallback
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L,QSA]

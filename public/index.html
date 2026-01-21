@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victu's Burgers API v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primario: #181818;
+            --segundario: #d7023c;
+            --letra: #eeebeb;
+            --body: #1a1919;
+            --body2: #2a1313;
+            --elegante: 'Playfair Display', Georgia, serif;
+        }
+        * { font-family: var(--elegante); }
+        body { 
+            background: linear-gradient(135deg, var(--primario) 0%, var(--body) 50%, var(--body2) 100%);
+            color: var(--letra);
+        }
+        
+        /* 🎨 CARDS COMPACTOS */
+        .api-card {
+            background: linear-gradient(180deg, var(--body2), var(--body)) !important;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(215, 2, 60, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .api-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--segundario), rgba(215, 2, 60, 0.5));
+        }
+        
+        .endpoint-link {
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .endpoint-link:hover {
+            transform: translateX(8px) scale(1.01);
+            box-shadow: 0 15px 30px rgba(215, 2, 60, 0.3);
+            border-color: var(--segundario);
+            background: rgba(215, 2, 60, 0.08);
+        }
+        
+        .copy-btn {
+            opacity: 0;
+            transform: translateY(6px) scale(0.9);
+            transition: all 0.3s ease;
+        }
+        .endpoint-link:hover .copy-btn {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .icon-float {
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: scale(0.7);
+        }
+        .group:hover .icon-float {
+            transform: scale(1) rotate(8deg);
+        }
+        
+        .method-badge {
+            background: linear-gradient(135deg, var(--segundario), #ff4566);
+            box-shadow: 0 3px 12px rgba(215, 2, 60, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4 lg:px-6">
+    <!-- Header COMPACTO -->
+    <div class="max-w-4xl mx-auto mb-16 text-center">
+        <h1 class="text-5xl lg:text-6xl font-black bg-gradient-to-r from-[var(--segundario)] via-red-500 to-red-600 bg-clip-text text-transparent mb-6 drop-shadow-2xl">
+            🍔 Victu's Burgers
+        </h1>
+        <p class="text-xl lg:text-2xl text-[var(--letra)]/80 font-light max-w-2xl mx-auto leading-relaxed">
+            API Backend E-commerce Comida Rápida
+        </p>
+        <div class="mt-8 flex flex-wrap gap-4 justify-center">
+            <span class="px-6 py-3 bg-gradient-to-r from-[var(--segundario)]/20 to-[var(--segundario)]/10 backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/30 shadow-lg">🔥 Puerto: 8081</span>
+            <span class="px-6 py-3 bg-[var(--body2)]/50 backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/20 shadow-lg">💾 DB: dbbuguer</span>
+            <span class="px-6 py-3 bg-gradient-to-r from-[var(--segundario)]/20 to-transparent backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/20 shadow-lg">v: 0.1</span>
+        </div>
+    </div>
+
+    <!-- Base URL COMPACTA -->
+    <div class="max-w-4xl mx-auto mb-16">
+        <div class="api-card p-8 lg:p-10 rounded-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-[var(--segundario)]/5 to-transparent"></div>
+            <h2 class="text-3xl lg:text-4xl font-bold text-[var(--letra)] mb-6 flex items-center gap-3 relative z-10">
+                🌐 Base URL
+            </h2>
+            <div class="endpoint-link group bg-[var(--body2)]/60 p-6 lg:p-8 rounded-2xl border-2 border-[var(--segundario)]/30 backdrop-blur-xl relative overflow-hidden" onclick="openEndpoint('http://localhost:8081/victus-backend/api/')">
+                <div class="absolute inset-0 bg-gradient-to-r from-[var(--segundario)]/5"></div>
+                <div class="flex items-center justify-between mb-3 relative z-10">
+                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)] block">http://localhost:8081/victus-backend/api/</code>
+                    <button class="copy-btn px-4 py-2 method-badge text-white rounded-xl text-sm lg:text-base font-bold shadow-lg ml-3" onclick="copyUrl(event, '/api/')">Copiar</button>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-4 py-2 bg-[var(--segundario)]/20 text-[var(--letra)] rounded-xl text-base font-semibold border border-[var(--segundario)]/30">✅ FUNCIONAL</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Endpoints Grid COMPACTO -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+        
+        <!-- PRODUCTOS -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">📦</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Productos</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Lista todos los productos disponibles</p>
+                </div>
+                
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?category_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?category_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?category_id=1')">📋</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Tabla: <code class="bg-[var(--body2)] px-3 py-1.5 rounded-xl text-base lg:text-lg font-mono">products</code></h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+                    <strong class="text-base lg:text-lg block mb-1">product_id</strong>
+                    <span class="text-[var(--letra)]/60 text-sm">INT AI</span>
+                </div>
+                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+                    <strong class="text-base lg:text-lg block mb-1">precio</strong>
+                    <span class="text-[var(--letra)]/60 text-sm">DECIMAL(10,2)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PEDIDOS -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">🛒</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Pedidos</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/orders?user_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/orders?user_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/orders?user_id=1')">📋</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Estados:</h3>
+            <div class="flex flex-wrap gap-2 lg:gap-3">
+                <span class="px-4 py-2 bg-[var(--body2)]/60 text-[var(--letra)] rounded-xl text-sm lg:text-base border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/10 transition-all cursor-pointer">pendiente</span>
+                <span class="px-4 py-2 bg-[var(--segundario)]/20 text-[var(--letra)] rounded-xl text-sm lg:text-base border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/20 transition-all cursor-pointer shadow-md">preparando</span>
+                <span class="px-4 py-2 bg-[var(--segundario)]/20 text-[var(--letra)] rounded-xl text-sm lg:text-base border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/30 transition-all cursor-pointer shadow-md">en camino</span>
+                <span class="px-4 py-2 bg-[var(--segundario)]/10 text-[var(--letra)] rounded-xl text-sm lg:text-base border-2 border-[var(--segundario)]/40 hover:bg-[var(--segundario)]/20 transition-all cursor-pointer shadow-lg">entregado</span>
+            </div>
+        </div>
+
+        <!-- USUARIOS -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">👥</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Usuarios</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/users?user_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/users?user_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/users?user_id=1')">📋</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIRECCIONES -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">📍</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Direcciones</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/addresses?user_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/addresses?user_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/addresses?user_id=1')">📋</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHOFERES -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">🚗</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Choferes</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/drivers')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/drivers</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/drivers')">📋</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer COMPACTO -->
+    <footer class="mt-24 text-center">
+        <div class="api-card p-8 lg:p-10 rounded-2xl mx-auto max-w-4xl border-t-4 border-[var(--segundario)]">
+            <p class="text-lg lg:text-xl text-[var(--letra)]/70">Made with ❤️ for Victu's Burgers | Enero 2026 | <code class="bg-[var(--body2)] px-4 py-2 rounded-xl text-lg font-mono">localhost:8081</code></p>
+        </div>
+    </footer>
+
+    <script>
+        function openEndpoint(url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        function copyUrl(event, endpoint) {
+            event.stopPropagation();
+            const fullUrl = 'http://localhost:8081/victus-backend' + endpoint;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                btn.style.background = 'rgba(215, 2, 60, 0.9)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
