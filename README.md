@@ -2,34 +2,30 @@
 
 Backend PHP/MySQL para E-commerce de comida rápida.
 
-## 🚀 **Iniciar el Backend**
-
+## 1. Iniciar servidor
 php -S localhost:8081
-URL Base: http://localhost:8081/victus-backend/api/
 
-🗄️ Base de Datos: dbbuguer
+## 2. Abrir docs
+http://localhost:8081/api/
 
-Credenciales MySQL:
+##🗄️ Base de Datos: dbbuguer
+
+##Credenciales MySQL:
 
 Host: localhost
 DB: dbbuguer
 User: root
 Password: (vacío)
 
-🔧 Dependencias
-bash
-# Ninguna externa - PHP puro + PDO MySQL
-PHP >= 8.0
-MySQL/MariaDB
-XAMPP/WAMP (desarrollo)
-🧪 Pruebas Rápidas
-bash
-# 1. Iniciar servidor
-php -S localhost:8081
-
-# 2. Abrir docs
-http://localhost:8081/api/
-
 🚀 Desarrollo Local (WAMPP/XAMPP)
 WAMPP/XAMPP: Apache + MySQL ON
 
+# futuras actualizaciones
+- funcionamiento mas complejos de las mismas tablas ya trabajadas (crear eliminar y actualizar)
+- funcionamiento mas complejo de inicio de sesion y abseso robusto sobre el contenido delicado de la pagina
+  
+# Actualizaciones
+## 21/1/2026
+- Juan de abreu
+- conexion a base de datos
+- peticiones basicas ya funcionando
