@@ -1,31 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const ComidaRapida = () => {
-  // Productos de la categoría "comida rápida" (category_id: 3)
-  const products = [
-    {
-      id: 7,
-      nombre: 'The Monster Burguer',
-      descripcion: 'Doble carne de res (300g total), doble tocino, huevo frito, aros de cebolla y salsa especial.',
-      precio: 14.00,
-      image: 'https://img.dbburguer.com/cenas/monster_burguer.jpg',
-    },
-    {
-      id: 8,
-      nombre: 'BBQ Bacon Burguer',
-      descripcion: 'Carne de res, bañado en salsa BBQ artesanal, cebolla caramelizada y mucho tocino.',
-      precio: 11.50,
-      image: 'https://img.dbburguer.com/cenas/bbq_bacon.jpg',
-    },
-    {
-      id: 9,
-      nombre: 'Salchipapa Especial',
-      descripcion: 'Cama de papas fritas con salchicha troceada, queso fundido, maíz tierno y salsas.',
-      precio: 9.50,
-      image: 'https://img.dbburguer.com/cenas/salchipapa.jpg',
-    },
-  ];
+  // 1. Estados para la lógica de carga y datos
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 2. Fetch para obtener productos de categoría 3 (Comida Rápida / Cena)
+  useEffect(() => {
+    // URL apuntando a tu backend con el filtro de categoría 3
+    const url = 'http://localhost:8081/victus-backend/api/products?category_id=3';
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error('Error al conectar con la API');
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching fast food:", err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  // Manejo de estados de carga
+  if (loading) return <div className="text-center pt-40 text-[var(--letra)]">Cargando delicias rápidas...</div>;
+  if (error) return <div className="text-center pt-40 text-red-500">Error: {error}</div>;
 
   return (
     <section className="min-h-screen bg-[var(--body)] pt-28 pb-12 px-4 lg:px-8">
@@ -42,22 +47,21 @@ const ComidaRapida = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {products.map((item) => (
             <div
-              key={item.id}
+              key={item.product_id} // ID real de la base de datos
               className="group relative flex flex-col bg-[var(--primario)]/5 backdrop-blur-sm border border-[var(--letra)]/10 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-red-900/10 transition-all duration-500 hover:-translate-y-2"
             >
               <div className="relative h-64 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
                 <img
-                  src={item.image}
+                  src={item.image_url} // Columna correcta de tu DB
                   alt={item.nombre}
                   className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
                   onError={(e) => {
-                    e.target.src =
-                      'https://images.unsplash.com/photo-1493770348161-369560ae357d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';
+                    e.target.src = 'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=800'; // Placeholder de hamburguesa
                   }}
                 />
                 <div className="absolute top-4 right-4 z-20 bg-[var(--body)]/90 backdrop-blur text-[var(--letra)] font-bold px-4 py-2 rounded-full shadow-lg border border-red-500/20">
-                  ${item.precio.toFixed(2)}
+                  ${parseFloat(item.precio).toFixed(2)}
                 </div>
               </div>
 
@@ -70,7 +74,7 @@ const ComidaRapida = () => {
                 </p>
                 <div className="mt-auto pt-4 border-t border-[var(--letra)]/10 flex justify-between items-center">
                   <Link
-                    to="#"
+                    to={`/producto/${item.product_id}`}
                     className="text-sm font-semibold text-[var(--letra)] hover:text-red-500 transition-colors flex items-center gap-2"
                   >
                     Ver detalles
