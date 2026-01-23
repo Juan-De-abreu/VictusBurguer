@@ -16,7 +16,7 @@ $segments = explode('/', $uri);
 // 🔑 DOCS: /api/ → HTML
 if ($segments[0] === 'api' && empty($segments[1])) {
     header('Content-Type: text/html; charset=utf-8');
-    readfile('public/index.html');
+    readfile('view/index.html');
     exit();
 }
 

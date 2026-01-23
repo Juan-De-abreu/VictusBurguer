@@ -1,5 +1,5 @@
 <?php
-// api/products.php - FIX RUTAS ABSOLUTAS
+// api/products.php - MANTENIENDO TU ESTILO ORIGINAL
 require_once __DIR__ . '/../config/database.php';
 
 $db = new Database();
@@ -8,39 +8,50 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
     case 'GET':
-        // 1. Capturamos el id de la categoría si viene en la URL
+        // 1. Capturamos parámetros de la URL
         $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : null;
+        $trendingOnly = isset($_GET['trending']) && $_GET['trending'] == 1;
 
         // 2. Base de la consulta
         $query = "
             SELECT p.*, c.nombre_categoria 
             FROM products p 
             LEFT JOIN categories c ON p.category_id = c.category_id 
+            WHERE 1=1
         ";
+        $params = [];
 
-        // 3. Añadimos el filtro solo si existe un category_id en la URL
-        if ($categoryId) {
-            $query .= " WHERE p.category_id = :category_id ";
+        // 3. ⭐ FILTRO TRENDING (nuevo)
+        if ($trendingOnly) {
+            $query .= " AND p.is_trending = 1";
         }
 
-        // 4. Ordenamos (primero los trending, luego por nombre)
-        $query .= " ORDER BY p.is_trending DESC, p.nombre ";
-        
+        // 4. Filtro por categoría (tu código original)
+        if ($categoryId) {
+            $query .= " AND p.category_id = :category_id";
+        }
+
+        // 5. Ordenar (trending primero)
+        $query .= " ORDER BY p.is_trending DESC, p.nombre";
+
+        // 6. Preparar y ejecutar
         $stmt = $pdo->prepare($query);
 
-        // 5. Vinculamos el parámetro si es necesario
+        // 7. Bind solo si existe category_id
         if ($categoryId) {
             $stmt->bindParam(':category_id', $categoryId, PDO::PARAM_INT);
         }
 
         $stmt->execute();
-        
-        // Usamos FETCH_ASSOC para un JSON limpio
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Ya tienes el header de JSON en el inicio de tu index.php, 
-        // pero no está de más asegurar que se envíe la respuesta.
         echo json_encode($results);
+        break;
+
+    case 'POST':
+        // Tu código POST existente (si lo tienes)
+        $data = json_decode(file_get_contents('php://input'), true);
+        // ... lógica POST
         break;
 }
 ?>
