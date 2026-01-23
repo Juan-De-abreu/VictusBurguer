@@ -25,12 +25,12 @@ const Menu = () => {
   ];
 
   return (
-    <section id="menucards" className="py-20 bg-gradient-to-t from-[var(--body2)] to-[var(--body)]">
+    <section id="menucards" className="py-20 bg-gradient-to-t from-[var(--body)] to-[var(--body2)] ">
       <div className="container mx-auto px-4 lg:px-6">
         {/* Título */}
         <div className="text-center mb-20">
           <h2 className="text-4xl lg:text-5xl font-bold text-[var(--letra)] mb-6">
-            Nuestro <span className="text-[var(--segundario)]">Menú</span>
+            Nuestro Menú
           </h2>
           <p className="text-xl text-[var(--letra)] max-w-2xl mx-auto leading-relaxed">
             Descubre nuestras especialidades preparadas con los mejores ingredientes
