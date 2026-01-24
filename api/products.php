@@ -1,5 +1,5 @@
 <?php
-// api/products.php - MANTENIENDO TU ESTILO ORIGINAL
+// api/products.php - ✅ FIX DEFINITIVO product_id
 require_once __DIR__ . '/../config/database.php';
 
 $db = new Database();
@@ -8,11 +8,27 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
     case 'GET':
-        // 1. Capturamos parámetros de la URL
         $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : null;
         $trendingOnly = isset($_GET['trending']) && $_GET['trending'] == 1;
+        $productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : null;
 
-        // 2. Base de la consulta
+        // ⭐ CASO ESPECIAL: Solo product_id (SIN ORDER BY)
+        if ($productId && !$categoryId && !$trendingOnly) {
+            $query = "
+                SELECT p.*, c.nombre_categoria 
+                FROM products p 
+                LEFT JOIN categories c ON p.category_id = c.category_id 
+                WHERE p.product_id = :product_id
+            ";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode($result ?: []);
+            break;
+        }
+
+        // 2. Caso GENERAL (listas)
         $query = "
             SELECT p.*, c.nombre_categoria 
             FROM products p 
@@ -21,37 +37,30 @@ switch($method) {
         ";
         $params = [];
 
-        // 3. ⭐ FILTRO TRENDING (nuevo)
         if ($trendingOnly) {
             $query .= " AND p.is_trending = 1";
         }
-
-        // 4. Filtro por categoría (tu código original)
+        
         if ($categoryId) {
             $query .= " AND p.category_id = :category_id";
+            $params[':category_id'] = $categoryId;
         }
 
-        // 5. Ordenar (trending primero)
+        // ⭐ SIN LIMIT aquí - solo ORDER BY
         $query .= " ORDER BY p.is_trending DESC, p.nombre";
 
-        // 6. Preparar y ejecutar
         $stmt = $pdo->prepare($query);
-
-        // 7. Bind solo si existe category_id
-        if ($categoryId) {
-            $stmt->bindParam(':category_id', $categoryId, PDO::PARAM_INT);
+        foreach ($params as $key => $value) {
+            $stmt->bindParam($key, $value, PDO::PARAM_INT);
         }
 
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
         echo json_encode($results);
         break;
 
     case 'POST':
-        // Tu código POST existente (si lo tienes)
         $data = json_decode(file_get_contents('php://input'), true);
-        // ... lógica POST
         break;
 }
 ?>
