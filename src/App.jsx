@@ -6,6 +6,7 @@ import Footer from './Components/Footer'
 import Desayunos from './Pages/Desayunos' // Importar la página de desayunos
 import Almuerzos from './Pages/Almuerzos'
 import ComidaRapida from './Pages/ComidaRapida' // Importar la página de comida rápida
+import ProductDetail from './Components/ProductsDetail'
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/Desayunos" element={<Desayunos />} /> {/* Ruta para desayunos */}
           <Route path="/Almuerzos" element={<Almuerzos />} /> {/* Ruta para almuerzos */}
           <Route path="/ComidaRapida" element={<ComidaRapida />} /> {/* Ruta para comida rápida */}
+          <Route path='/product/:productId' element={<ProductDetail/>}/>
         </Routes>
       <Footer/>
     </BrowserRouter>

@@ -51,6 +51,7 @@ const TrendingMenus = () => {
         {/* Grid Trending */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 relative">
           {trending.map((product, index) => (
+            <Link to={`/product/${product.product_id}`}>
             <motion.div
               key={product.product_id}
               initial={{ opacity: 0, y: 50 }}
@@ -59,9 +60,6 @@ const TrendingMenus = () => {
               className="group/card cursor-pointer bg-[var(--body)] text-center rounded-3xl text-[var(--letra)] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-400 border border-transparent relative z-0 hover:z-10 
                   hover:scale-105 hover:-translate-y-2 opacity-100
                   data-[focus=false]:scale-[0.92] data-[focus=false]:opacity-70"
-              onClick={() =>
-                window.open(`/product/${product.product_id}`, "_blank")
-              }
               data-focus="true" // Estado inicial
             >
               {/* Imagen */}
@@ -128,6 +126,7 @@ const TrendingMenus = () => {
                 </motion.button>
               </div>
             </motion.div>
+            </Link>
           ))}
         </div>
 

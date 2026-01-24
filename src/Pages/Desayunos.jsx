@@ -50,6 +50,7 @@ const Desayunos = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
           {products.map((item) => (
+            <Link to={`/product/${item.product_id}`}>
             <div 
               key={item.product_id} // Usamos product_id de tu tabla SQL
               className="group relative flex flex-col bg-[var(--primario)]/5 backdrop-blur-sm border border-[var(--letra)]/10 rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
@@ -89,6 +90,7 @@ const Desayunos = () => {
                 </div>
               </div>
             </div>
+            </Link>
           ))}
         </div>
       </div>
