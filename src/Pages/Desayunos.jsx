@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
+import { API_BASE_URL } from '../config/api';
 const Desayunos = () => {
   // 1. Definimos el estado para guardar los productos y el estado de carga
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const API=`${API_BASE_URL}/products?category_id=1`;
   // 2. useEffect para ejecutar el fetch cuando se carga el componente
   useEffect(() => {
     // Cambia 'http://localhost:8000' por la URL real de tu servidor PHP
-    const url = 'http://localhost:8081//victus-backend/api/products?category_id=1';
 
-    fetch(url)
+    fetch(API)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Error al conectar con el servidor');

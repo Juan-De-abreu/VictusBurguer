@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from '../config/api';
 
 const Almuerzos = () => {
   // 1. Estados para manejar los datos, la carga y posibles errores
@@ -7,12 +8,12 @@ const Almuerzos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+      // Usamos el category_id=2 para filtrar los almuerzos
+
+  const API=`${API_BASE_URL}/products?category_id=2`;
   // 2. useEffect para llamar a la API al cargar el componente
   useEffect(() => {
-    // Usamos el category_id=2 para filtrar los almuerzos
-    const url = 'http://localhost:8081/victus-backend/api/products?category_id=2';
-
-    fetch(url)
+    fetch(API)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Error al conectar con el servidor');

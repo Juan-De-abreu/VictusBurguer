@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 
 const ComidaRapida = () => {
   // 1. Estados para la lógica de carga y datos
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const API=`${API_BASE_URL}/products?category_id=3`;
   // 2. Fetch para obtener productos de categoría 3 (Comida Rápida / Cena)
   useEffect(() => {
     // URL apuntando a tu backend con el filtro de categoría 3
-    const url = 'http://localhost:8081/victus-backend/api/products?category_id=3';
 
-    fetch(url)
+    fetch(API)
       .then((response) => {
         if (!response.ok) throw new Error('Error al conectar con la API');
         return response.json();

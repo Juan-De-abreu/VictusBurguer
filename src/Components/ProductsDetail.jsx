@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
+import { API_BASE_URL } from '../config/api';
 const ProductDetail = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState('M');
-
+  const API= API_BASE_URL+`/products?product_id=${productId}`;
   // Fetch producto específico del backend - FIX data handling
   useEffect(() => {
-    fetch(`http://localhost:8081/victus-backend/api/products?product_id=${productId}`)
+    fetch(API)
       .then(res => res.json())
       .then(data => {
         // Fix: Maneja objeto directo O array

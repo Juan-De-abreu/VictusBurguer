@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion"; // npm i framer-motion
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from '../../config/api';
 
 const TrendingMenus = () => {
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const API = API_BASE_URL + "/products/trending";
   // Fetch productos trending del backend
   useEffect(() => {
-    fetch("http://localhost:8081/victus-backend/api/products?is_trending=1")
+    fetch(API)
       .then((res) => res.json())
       .then((data) => {
         setTrending(data.slice(0, 3)); // Top 6

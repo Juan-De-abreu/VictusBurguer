@@ -62,23 +62,23 @@ const Header = () => {
         ref={menuRef}
         className="fixed top-0 left-0 right-0 z-50 bg-[var(--primario)] backdrop-blur-md shadow-lg border-b border-red-500/30 text-2xl"
       >
-        <div className="container mx-auto px-4 lg:px-6">
+        <div className="lg:mx-10 px-4 lg:px-0">
           <div className="flex justify-between items-center h-20 lg:h-24">
             {/* Logo */}
             <Link
               to="/"
-              className="text-3xl lg:text-4xl font-serif italic font-bold text-red-600 hover:text-red-500 transition-colors duration-300"
+              className="text-3xl hidden lg:flex lg:text-4xl font-serif italic font-bold text-red-600 hover:text-red-500 transition-colors duration-300"
             >
               Victu's Burgers
             </Link>
 
             {/* Botón hamburguesa móvil */}
             <button 
-              className="lg:hidden p-2 rounded-md transition-all duration-300 hover:bg-red-600/20"
+              className="lg:hidden p-2 rounded-md transition-all duration-300 text-white hover:text-red-800"
               onClick={toggleMenu}
               aria-label="Toggle navigation"
             >
-              <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
@@ -124,7 +124,7 @@ const Header = () => {
               href=""
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:flex items-center bg-red-900 hover:bg-[var(--segundario)]/80 text-white font-semibold text-lg px-6 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
+              className="hidden lg:flex items-center bg-red-900 hover:bg-[var(--segundario)]/80 text-white font-semibold text-lg px-4 mx-10 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
             >
               Contactanos
               <img 
@@ -133,6 +133,10 @@ const Header = () => {
                 alt="instagram"           
               />      
             </a>
+            {/* login de usuario */}
+            <Link to={'/login'} className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)]">
+              <svg  xmlns="http://www.w3.org/2000/svg" width={30} height={30} fill={"currentColor"} viewBox="0 0 24 24">{/* Boxicons v3.0.8 https://boxicons.com | License  https://docs.boxicons.com/free */}<path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5m0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1m6-7h4c2.76 0 5 2.24 5 5H5c0-2.76 2.24-5 5-5"></path></svg>
+            </Link>
           </div>
 
           {/* Menú móvil desplegable */}
@@ -149,7 +153,7 @@ const Header = () => {
                   <li key={boton.to}>
                     <Link
                       to={boton.to}
-                      className="flex items-center py-3 px-4 text-xl text-[var(--letra)] hover:bg-red-600/20 hover:scale-105 rounded-xl transition-all duration-200"
+                      className="flex justify-center items-center py-3 px-4 text-xl text-[var(--letra)] hover:bg-red-600/20 hover:scale-105 rounded-xl transition-all duration-200"
                       onClick={() => setMenuIsOpen(false)}
                     >
                       {boton.label}
