@@ -6,7 +6,7 @@ const Hero = () => {
       {/* Header tiene fixed top, por eso el padding-top */}
       <div className="pt-16 md:pt-24"></div>
       
-      <section className="relative bg-gradient-to-b from-gray-900/90 to-black/90 overflow-hidden h-screen max-h-[600px] lg:max-h-[700px] flex items-center justify-center px-4">
+      <section className="relative bg-gradient-to-b from-gray-900/90 to-black/90 overflow-hidden h-screen max-h-[600px] lg:max-h-[750px] flex items-center justify-center px-4">
         {/* Fondo fijo - NO REPITE */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed opacity-70"

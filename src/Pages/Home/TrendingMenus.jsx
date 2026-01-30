@@ -33,7 +33,7 @@ const TrendingMenus = () => {
   }
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-b from-[var(--body)] to-[var(--body2)] border-t-1 text-center">
+    <section className="border-b-1 border-black py-16 lg:py-24 bg-gradient-to-b from-[var(--body)] to-[var(--body2)] border-t-1 text-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Título */}
         <motion.div
