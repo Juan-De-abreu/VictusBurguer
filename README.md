@@ -25,6 +25,10 @@ Sitio web responsive de restaurante **Victu's Burgers** con men√∫ hamburguesa m√
 
 # Actualizaciones
 
+### 30/1/2026
+- login primera parte visual, falta corregir errores de desbordamiento de los form y agg animaciones de extensiones laterales para una interfaz mas agradable
+
+
 ### 28/1/2026
 - header mas minimalista en celulares y agg el login (parte visual)
 - globalizacion de api para reutilizacion y solo ajustar endpoint en cada page
