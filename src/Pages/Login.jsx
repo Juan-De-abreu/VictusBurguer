@@ -28,7 +28,7 @@ const AuthPage = () => {
   return (
     <>
       {/* Mobile: Imagen full-screen + formulario centrado */}
-      <div className="lg:hidden min-h-screen bg-gradient-to-br from-gray-900/20 to-black relative overflow-hidden">
+      <div className="mt-10 lg:hidden min-h-screen bg-gradient-to-br from-gray-900/20 to-black relative overflow-hidden">
         {/* Fondo de imagen FULL SCREEN */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70" 
              style={{ backgroundImage: "url('/src/assets/img/FondoLogin.png')" }}>
@@ -40,7 +40,7 @@ const AuthPage = () => {
           <div className="w-full max-w-sm sm:max-w-md mx-auto h-fit flex flex-col">
             {/* Header */}
             <div className="text-center mb-6 flex-shrink-0 pt-8">
-              <h1 className={`text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent drop-shadow-2xl transition-all duration-500 ${isTransitioning ? 'scale-95 opacity-75' : 'animate-slide-up'}`}>
+              <h1 className={`text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-gray-100 to-gray-200 bg-clip-text text-transparent drop-shadow-2xl transition-all duration-500 ${isTransitioning ? 'scale-95 opacity-75' : 'animate-slide-up'} ${isLogin? '': 'mt-5'}`}>
                 {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
               </h1>
             </div>
@@ -101,7 +101,7 @@ const AuthPage = () => {
       </div>
 
       {/* Desktop: Layout con grid 2 columnas - MISMO TAMAÑO SIEMPRE */}
-      <div className="hidden lg:grid lg:grid-cols-2 lg:h-screen lg:min-h-screen bg-gradient-to-br from-gray-900/20 to-black transition-all duration-700 ease-in-out">
+      <div className="hidden mt-8 lg:grid lg:grid-cols-2  lg:min-h-screen  transition-all duration-700 ease-in-out">
         {/* DIV 1 - Imagen: MISMO tamaño que formulario */}
         <div className={`
           relative overflow-hidden w-full h-full flex items-center justify-center

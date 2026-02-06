@@ -50,7 +50,7 @@ const TrendingMenus = () => {
         </motion.div>
 
         {/* Grid Trending */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 relative space-y-6">
           {trending.map((product, index) => (
             <Link to={`/product/${product.product_id}`}>
             <motion.div
