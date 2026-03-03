@@ -112,48 +112,74 @@
     <!-- Endpoints Grid COMPACTO -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
         
-        <!-- PRODUCTOS -->
-        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
-            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
-                <span class="text-xl lg:text-2xl">📦</span>
+        <!-- PRODUCTOS - ACTUALIZADO con TRENDING -->
+<div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+    <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+        <span class="text-xl lg:text-2xl">📦</span>
+    </div>
+    <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Productos</h2>
+    
+    <div class="space-y-3 lg:space-y-4 mb-6">
+        <!-- Todos los productos -->
+        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products')">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products</code>
+                </div>
+                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products')">📋</button>
             </div>
-            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Productos</h2>
-            
-            <div class="space-y-3 lg:space-y-4 mb-6">
-                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products')">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
-                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products</code>
-                        </div>
-                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products')">📋</button>
-                    </div>
-                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Lista todos los productos disponibles</p>
-                </div>
-                
-                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?category_id=1')">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
-                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?category_id=1</code>
-                        </div>
-                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?category_id=1')">📋</button>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Tabla: <code class="bg-[var(--body2)] px-3 py-1.5 rounded-xl text-base lg:text-lg font-mono">products</code></h3>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
-                    <strong class="text-base lg:text-lg block mb-1">product_id</strong>
-                    <span class="text-[var(--letra)]/60 text-sm">INT AI</span>
-                </div>
-                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
-                    <strong class="text-base lg:text-lg block mb-1">precio</strong>
-                    <span class="text-[var(--letra)]/60 text-sm">DECIMAL(10,2)</span>
-                </div>
-            </div>
+            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Lista todos los productos disponibles</p>
         </div>
+        
+        <!-- Por categoría -->
+        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?category_id=1')">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?category_id=1</code>
+                </div>
+                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?category_id=1')">📋</button>
+            </div>
+            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Productos filtrados por categoría</p>
+        </div>
+        
+        <!-- ⭐ NUEVO: SOLO TRENDING -->
+        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-l-4 border-yellow-400" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?trending=1')">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="bg-gradient-to-r from-yellow-500 to-orange-500 px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md rounded-lg">GET</span>
+                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?trending=1</code>
+                    <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs font-bold">⭐ NUEVO</span>
+                </div>
+                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?trending=1')">📋</button>
+            </div>
+            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>SELECT * FROM products WHERE is_trending = 1</strong> - Solo menús populares</p>
+        </div>
+    </div>
+
+    <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Tabla: <code class="bg-[var(--body2)] px-3 py-1.5 rounded-xl text-base lg:text-lg font-mono">products</code></h3>
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+            <strong class="text-base lg:text-lg block mb-1">product_id</strong>
+            <span class="text-[var(--letra)]/60 text-sm">INT AI</span>
+        </div>
+        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+            <strong class="text-base lg:text-lg block mb-1">precio</strong>
+            <span class="text-[var(--letra)]/60 text-sm">DECIMAL(10,2)</span>
+        </div>
+        <!-- ⭐ NUEVO: Campo trending -->
+        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border-l-4 border-yellow-500/50 hover:bg-yellow-500/5 transition-all group-hover:scale-105">
+            <strong class="text-base lg:text-lg block mb-1">is_trending</strong>
+            <span class="text-yellow-400 text-sm font-semibold">TINYINT(1) ⭐</span>
+        </div>
+        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+            <strong class="text-base lg:text-lg block mb-1">category_id</strong>
+            <span class="text-[var(--letra)]/60 text-sm">INT FK</span>
+        </div>
+    </div>
+</div>
+
 
         <!-- PEDIDOS -->
         <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
