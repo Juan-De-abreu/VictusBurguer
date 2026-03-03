@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Victu's Burgers API v1.0</title>
+    <title>Victu's Burgers API v1.1 🔥 AUTH + CART</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -71,6 +71,13 @@
             background: linear-gradient(135deg, var(--segundario), #ff4566);
             box-shadow: 0 3px 12px rgba(215, 2, 60, 0.4);
         }
+
+        /* 🔐 AUTH NUEVO */
+        .auth-badge { background: linear-gradient(135deg, #10b981, #059669); }
+        .cart-badge { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .stats-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .new-badge { background: linear-gradient(135deg, #ef4444, #dc2626); position: relative; }
+        .new-badge::after { content: '🔥 NUEVO'; position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="min-h-screen py-8 px-4 lg:px-6">
@@ -80,12 +87,14 @@
             🍔 Victu's Burgers
         </h1>
         <p class="text-xl lg:text-2xl text-[var(--letra)]/80 font-light max-w-2xl mx-auto leading-relaxed">
-            API Backend E-commerce Comida Rápida
+            API Backend E-commerce Comida Rápida <span class="new-badge inline-block px-3 py-1 ml-2 rounded-full text-xs font-bold text-white">v1.1</span>
         </p>
         <div class="mt-8 flex flex-wrap gap-4 justify-center">
             <span class="px-6 py-3 bg-gradient-to-r from-[var(--segundario)]/20 to-[var(--segundario)]/10 backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/30 shadow-lg">🔥 Puerto: 8081</span>
             <span class="px-6 py-3 bg-[var(--body2)]/50 backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/20 shadow-lg">💾 DB: dbbuguer</span>
-            <span class="px-6 py-3 bg-gradient-to-r from-[var(--segundario)]/20 to-transparent backdrop-blur-xl rounded-xl text-lg border border-[var(--segundario)]/20 shadow-lg">v: 0.1</span>
+            <span class="px-6 py-3 bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-xl rounded-xl text-lg border border-green-400/30 shadow-lg flex items-center gap-2">
+                🔐 <span class="font-bold">AUTH ✓</span>
+            </span>
         </div>
     </div>
 
@@ -104,6 +113,7 @@
                 </div>
                 <div class="flex gap-2">
                     <span class="px-4 py-2 bg-[var(--segundario)]/20 text-[var(--letra)] rounded-xl text-base font-semibold border border-[var(--segundario)]/30">✅ FUNCIONAL</span>
+                    <span class="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-base font-semibold border border-green-400/30">🔐 AUTH ✓</span>
                 </div>
             </div>
         </div>
@@ -111,77 +121,156 @@
 
     <!-- Endpoints Grid COMPACTO -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-        
-        <!-- PRODUCTOS - ACTUALIZADO con TRENDING -->
-<div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
-    <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
-        <span class="text-xl lg:text-2xl">📦</span>
-    </div>
-    <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Productos</h2>
-    
-    <div class="space-y-3 lg:space-y-4 mb-6">
-        <!-- Todos los productos -->
-        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products')">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
-                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products</code>
-                </div>
-                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products')">📋</button>
-            </div>
-            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Lista todos los productos disponibles</p>
-        </div>
-        
-        <!-- Por categoría -->
-        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?category_id=1')">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
-                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?category_id=1</code>
-                </div>
-                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?category_id=1')">📋</button>
-            </div>
-            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Productos filtrados por categoría</p>
-        </div>
-        
-        <!-- ⭐ NUEVO: SOLO TRENDING -->
-        <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-l-4 border-yellow-400" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?trending=1')">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="bg-gradient-to-r from-yellow-500 to-orange-500 px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md rounded-lg">GET</span>
-                    <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?trending=1</code>
-                    <span class="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs font-bold">⭐ NUEVO</span>
-                </div>
-                <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?trending=1')">📋</button>
-            </div>
-            <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>SELECT * FROM products WHERE is_trending = 1</strong> - Solo menús populares</p>
-        </div>
-    </div>
 
-    <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Tabla: <code class="bg-[var(--body2)] px-3 py-1.5 rounded-xl text-base lg:text-lg font-mono">products</code></h3>
-    <div class="grid grid-cols-2 gap-3">
-        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
-            <strong class="text-base lg:text-lg block mb-1">product_id</strong>
-            <span class="text-[var(--letra)]/60 text-sm">INT AI</span>
-        </div>
-        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
-            <strong class="text-base lg:text-lg block mb-1">precio</strong>
-            <span class="text-[var(--letra)]/60 text-sm">DECIMAL(10,2)</span>
-        </div>
-        <!-- ⭐ NUEVO: Campo trending -->
-        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border-l-4 border-yellow-500/50 hover:bg-yellow-500/5 transition-all group-hover:scale-105">
-            <strong class="text-base lg:text-lg block mb-1">is_trending</strong>
-            <span class="text-yellow-400 text-sm font-semibold">TINYINT(1) ⭐</span>
-        </div>
-        <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
-            <strong class="text-base lg:text-lg block mb-1">category_id</strong>
-            <span class="text-[var(--letra)]/60 text-sm">INT FK</span>
-        </div>
-    </div>
-</div>
+        <!-- 🔥 AUTH - NUEVO PRINCIPAL -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-1 xl:col-span-1">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl border-2 border-green-400/50">
+                <span class="text-xl lg:text-2xl">🔐</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">AUTH</h2>
+            
+            <div class="space-y-3 mb-6">
+                <!-- Login -->
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 border-l-4 border-green-500 bg-gradient-to-r from-green-500/5 to-blue-500/5" onclick="openEndpoint('http://localhost:8081/victus-backend/api/auth/login.php')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="auth-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">POST</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/auth/login</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/auth/login.php')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>{"{email, password}"}</strong> → token JWT</p>
+                </div>
 
+                <!-- Register -->
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 border-l-4 border-emerald-500" onclick="openEndpoint('http://localhost:8081/victus-backend/api/auth/register.php')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="auth-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">POST</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/auth/register</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/auth/register.php')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>{"{nombre, email, telefono, password}"}</strong></p>
+                </div>
+            </div>
+        </div>
 
-        <!-- PEDIDOS -->
+        <!-- 🛒 CART - NUEVO -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-1 xl:col-span-1">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl border-2 border-blue-400/50">
+                <span class="text-xl lg:text-2xl">🛒</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Carrito</h2>
+            
+            <div class="space-y-3 mb-6">
+                <!-- Cart actual -->
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 border-l-4 border-blue-500" onclick="openEndpoint('http://localhost:8081/victus-backend/api/cart?user_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="cart-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/cart?user_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/cart?user_id=1')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Carrito actual del usuario</p>
+                </div>
+
+                <!-- Add to cart -->
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 border-l-4 border-indigo-500" onclick="openEndpoint('http://localhost:8081/victus-backend/api/cart/add.php')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="cart-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">POST</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/cart/add.php</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/cart/add.php')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>{"{user_id, product_id, cantidad}"}</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📦 PRODUCTOS -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
+                <span class="text-xl lg:text-2xl">📦</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Productos</h2>
+            
+            <div class="space-y-3 lg:space-y-4 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Lista todos los productos disponibles</p>
+                </div>
+                
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?category_id=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="method-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?category_id=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?category_id=1')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Productos filtrados por categoría</p>
+                </div>
+                
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-l-4 border-yellow-400" onclick="openEndpoint('http://localhost:8081/victus-backend/api/products?trending=1')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-gradient-to-r from-yellow-500 to-orange-500 px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md rounded-lg">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/products?trending=1</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/products?trending=1')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base"><strong>WHERE is_trending = 1</strong> - Menús populares</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg lg:text-xl font-semibold text-[var(--letra)]/80 mb-4">Tabla: <code class="bg-[var(--body2)] px-3 py-1.5 rounded-xl text-base lg:text-lg font-mono">products</code></h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+                    <strong class="text-base lg:text-lg block mb-1">product_id</strong>
+                    <span class="text-[var(--letra)]/60 text-sm">INT AI</span>
+                </div>
+                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border border-[var(--segundario)]/30 hover:bg-[var(--segundario)]/5 transition-all group-hover:scale-105">
+                    <strong class="text-base lg:text-lg block mb-1">precio</strong>
+                    <span class="text-[var(--letra)]/60 text-sm">DECIMAL(10,2)</span>
+                </div>
+                <div class="bg-[var(--body2)]/60 p-4 rounded-xl border-l-4 border-yellow-500/50 hover:bg-yellow-500/5 transition-all group-hover:scale-105">
+                    <strong class="text-base lg:text-lg block mb-1">is_trending</strong>
+                    <span class="text-yellow-400 text-sm font-semibold">TINYINT(1) ⭐</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📊 STATS - NUEVO -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
+            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl border-2 border-amber-400/50">
+                <span class="text-xl lg:text-2xl">📊</span>
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Estadísticas</h2>
+            
+            <div class="space-y-3 mb-6">
+                <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10 border-l-4 border-amber-500 bg-gradient-to-r from-amber-500/5 to-orange-500/5" onclick="openEndpoint('http://localhost:8081/victus-backend/api/stats/dashboard')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="stats-badge px-3 py-1.5 lg:px-4 lg:py-2 text-white text-sm lg:text-base font-bold shadow-md">GET</span>
+                            <code class="text-lg lg:text-xl font-mono text-[var(--letra)]">/api/stats/dashboard</code>
+                        </div>
+                        <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/stats/dashboard')">📋</button>
+                    </div>
+                    <p class="text-[var(--letra)]/70 mt-2 text-sm lg:text-base">Dashboard completo: ventas, usuarios, productos top</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🛒 PEDIDOS -->
         <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
             <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
                 <span class="text-xl lg:text-2xl">🛒</span>
@@ -209,14 +298,13 @@
             </div>
         </div>
 
-        <!-- USUARIOS -->
-        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden">
+        <!-- 👥 USUARIOS + DIRECCIONES -->
+        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
             <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
                 <span class="text-xl lg:text-2xl">👥</span>
             </div>
             <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Usuarios</h2>
-            
-            <div class="space-y-3 lg:space-y-4 mb-6">
+            <div class="space-y-3 mb-6">
                 <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/users?user_id=1')">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -229,14 +317,13 @@
             </div>
         </div>
 
-        <!-- DIRECCIONES -->
+        <!-- 📍 DIRECCIONES + CHOFERES -->
         <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
             <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
                 <span class="text-xl lg:text-2xl">📍</span>
             </div>
-            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Direcciones</h2>
-            
-            <div class="space-y-3 lg:space-y-4 mb-6">
+            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Direcciones & Choferes</h2>
+            <div class="grid grid-cols-1 gap-4 mb-6">
                 <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/addresses?user_id=1')">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -246,17 +333,6 @@
                         <button class="copy-btn px-3 py-1.5 lg:px-4 lg:py-2 bg-[var(--segundario)]/80 hover:bg-[var(--segundario)] text-[var(--letra)] rounded-lg text-sm font-bold shadow-md" onclick="copyUrl(event, '/api/addresses?user_id=1')">📋</button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- CHOFERES -->
-        <div class="group api-card p-6 lg:p-8 rounded-2xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden lg:col-span-2 xl:col-span-1">
-            <div class="absolute top-6 right-6 w-16 h-16 lg:w-20 lg:h-20 bg-[var(--segundario)]/10 backdrop-blur-xl rounded-2xl flex items-center justify-center icon-float shadow-xl">
-                <span class="text-xl lg:text-2xl">🚗</span>
-            </div>
-            <h2 class="text-2xl lg:text-3xl font-bold text-[var(--letra)] mb-6 relative z-10 drop-shadow-md">Choferes</h2>
-            
-            <div class="space-y-3 lg:space-y-4 mb-6">
                 <div class="endpoint-link p-4 lg:p-5 rounded-xl relative z-10" onclick="openEndpoint('http://localhost:8081/victus-backend/api/drivers')">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -273,7 +349,8 @@
     <!-- Footer COMPACTO -->
     <footer class="mt-24 text-center">
         <div class="api-card p-8 lg:p-10 rounded-2xl mx-auto max-w-4xl border-t-4 border-[var(--segundario)]">
-            <p class="text-lg lg:text-xl text-[var(--letra)]/70">Made with ❤️ for Victu's Burgers | Enero 2026 | <code class="bg-[var(--body2)] px-4 py-2 rounded-xl text-lg font-mono">localhost:8081</code></p>
+            <p class="text-lg lg:text-xl text-[var(--letra)]/70">Made with ❤️ for Victu's Burgers | Marzo 2026 | <code class="bg-[var(--body2)] px-4 py-2 rounded-xl text-lg font-mono">localhost:8081</code></p>
+            <p class="text-sm text-[var(--letra)]/50 mt-4">🔐 AUTH + 🛒 CART + 📊 STATS = Listo para Production 🚀</p>
         </div>
     </footer>
 
@@ -289,7 +366,7 @@
                 const btn = event.target;
                 const originalText = btn.textContent;
                 btn.textContent = '✅ Copiado!';
-                btn.style.background = 'rgba(215, 2, 60, 0.9)';
+                btn.style.background = 'rgba(34, 197, 94, 0.9)';
                 setTimeout(() => {
                     btn.textContent = originalText;
                     btn.style.background = '';
