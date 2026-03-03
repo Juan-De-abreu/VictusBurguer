@@ -8,11 +8,13 @@ import Almuerzos from './Pages/Almuerzos'
 import ComidaRapida from './Pages/ComidaRapida' // Importar la página de comida rápida
 import ProductDetail from './Components/ProductsDetail'
 import Login from './Pages/Login'
+import { AuthProvider } from './contexts/AuthContext'
 
 function App() {
 
   return (
     <div className='App bg-[var(--body)]'>
+      <AuthProvider>
     <BrowserRouter>
       <Header/>
         <Routes>
@@ -25,6 +27,7 @@ function App() {
         </Routes>
       <Footer/>
     </BrowserRouter>
+    </AuthProvider>
     </div>
   )
 }

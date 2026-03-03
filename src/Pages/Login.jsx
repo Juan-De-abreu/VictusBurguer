@@ -1,21 +1,106 @@
 import React, { useState, useEffect } from "react";
-
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext'; // ← IMPORTS FALTANTES
+import { useNavigate } from 'react-router-dom';  // ← IMPORTS FALTANTES
+import { API_BASE_URL } from "../config/api";
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // ✅ HOOKS CORREGIDOS
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  
+  // Estados del formulario
+  const [formData, setFormData] = useState({
+    nombre: '',
+    email: '',
+    telefono: '',
+    password: ''
+  });
+
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 1200);
   }, []);
 
+  // Manejar cambios en inputs
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    if (error) setError('');
+  };
+
+  // ✅ LOGIN COMPLETO (ya estaba bien)
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (response.data.success) {
+        login(response.data.token, response.data.user);
+        navigate('/');
+      } else {
+        setError(response.data.message || 'Error en credenciales');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error de conexión');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ✅ REGISTER COMPLETO (FALTABA TODO)
+  const handleRegister = async (e) => {
+    e.preventDefault(); // ← FALTABA
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+        nombre: formData.nombre,
+        email: formData.email,
+        telefono: formData.telefono,
+        password: formData.password
+      });
+
+      if (response.data.success) {
+        setError('¡Cuenta creada exitosamente! Ahora inicia sesión.');
+        setIsLogin(true); // Cambia a login
+        setFormData({ nombre: '', email: '', telefono: '', password: '' });
+      } else {
+        setError(response.data.message || 'Error al crear cuenta');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error de conexión');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const switchForm = () => {
     setIsTransitioning(true);
     setTimeout(() => {
       setIsLogin(!isLogin);
+      setFormData({ nombre: '', email: '', telefono: '', password: '' });
+      setError('');
       setIsTransitioning(false);
     }, 500);
   };
+
+  // ... resto del JSX SIN CAMBIOS (está perfecto) ...
 
   if (isLoading) {
     return (
@@ -46,19 +131,54 @@ const AuthPage = () => {
             </div>
 
             {/* Formulario */}
-            <form className="space-y-5 w-full max-w-md mx-auto bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/30 shadow-2xl shadow-black/40 hover:shadow-red-500/20 transition-all duration-500 flex flex-col justify-center">
+            <form className="space-y-5 w-full max-w-md mx-auto bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-white/30 shadow-2xl shadow-black/40 hover:shadow-red-500/20 transition-all duration-500 flex flex-col justify-center" onSubmit={isLogin ? handleLogin : handleRegister}>
+              {error && (
+                <div className="p-3 bg-red-500/20 border border-red-400/50 rounded-xl text-red-100 text-sm text-center animate-pulse">
+                  {error}
+                </div>
+              )}
+              
               {isLogin ? (
                 <>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Email</label>
-                    <input type="email" placeholder="ejemplo@correo.com" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" required />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="ejemplo@correo.com" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      required 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Contraseña</label>
-                    <input type="password" placeholder="••••••••" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" required />
+                    <input 
+                      type="password" 
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      required 
+                      disabled={isSubmitting}
+                    />
                   </div>
-                  <button type="submit" className="w-full p-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-800 hover:shadow-red-500/30 hover:scale-[1.02] transition-all duration-300 mt-4">
-                    🔐 Iniciar Sesión
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-800 hover:shadow-red-500/30 hover:scale-[1.02] transition-all duration-300 mt-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                        Cargando...
+                      </>
+                    ) : (
+                      '🔐 Iniciar Sesión'
+                    )}
                   </button>
                   <div className="pt-6 border-t border-white/20 text-center space-y-2">
                     <a href="#" className="block text-white/85 hover:text-white text-sm hover:underline transition-colors">¿Olvidaste tu contraseña?</a>
@@ -71,22 +191,65 @@ const AuthPage = () => {
                 <>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Nombre Completo</label>
-                    <input type="text" placeholder="Juan Pérez" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" />
+                    <input 
+                      type="text" 
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleInputChange}
+                      placeholder="Juan Pérez" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Email</label>
-                    <input type="email" placeholder="tu@correo.com" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="tu@correo.com" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Teléfono</label>
-                    <input type="tel" placeholder="+58 412 123 4567" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" />
+                    <input 
+                      type="tel" 
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleInputChange}
+                      placeholder="+58 412 123 4567" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/95 text-sm font-semibold mb-2">Contraseña</label>
-                    <input type="password" placeholder="••••••••" className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" />
+                    <input 
+                      type="password" 
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••" 
+                      className="w-full p-4 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/30 hover:border-white/50 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-400/60 transition-all duration-300 text-lg shadow-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
-                  <button type="submit" className="w-full p-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-900 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-900 hover:shadow-red-500/30 hover:scale-[1.02] transition-all duration-300 mt-4">
-                    Crear Cuenta +
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-900 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-900 hover:shadow-red-500/30 hover:scale-[1.02] transition-all duration-300 mt-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                        Creando...
+                      </>
+                    ) : (
+                      'Crear Cuenta +'
+                    )}
                   </button>
                   <div className="pt-6 border-t border-white/20 text-center space-y-2">
                     <p className="text-sm text-white/75 cursor-pointer hover:text-white/90 transition-all duration-200" onClick={switchForm}>
@@ -101,7 +264,7 @@ const AuthPage = () => {
       </div>
 
       {/* Desktop: Layout con grid 2 columnas - MISMO TAMAÑO SIEMPRE */}
-      <div className="hidden mt-8 lg:grid lg:grid-cols-2  lg:min-h-screen  transition-all duration-700 ease-in-out">
+      <div className="hidden mt-8 lg:grid lg:grid-cols-2 lg:min-h-screen transition-all duration-700 ease-in-out">
         {/* DIV 1 - Imagen: MISMO tamaño que formulario */}
         <div className={`
           relative overflow-hidden w-full h-full flex items-center justify-center
@@ -143,19 +306,54 @@ const AuthPage = () => {
             </div>
 
             {/* Formulario */}
-            <form className="space-y-5 w-full max-w-md mx-auto bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl shadow-black/30 flex flex-col justify-center transition-all duration-500">
+            <form className="space-y-5 w-full max-w-md mx-auto bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl shadow-black/30 flex flex-col justify-center transition-all duration-500" onSubmit={isLogin ? handleLogin : handleRegister}>
+              {error && (
+                <div className="p-3 bg-red-500/20 border border-red-400/50 rounded-xl text-red-100 text-sm text-center animate-pulse mb-4">
+                  {error}
+                </div>
+              )}
+              
               {isLogin ? (
                 <>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Email</label>
-                    <input type="email" placeholder="ejemplo@correo.com" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" required />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="ejemplo@correo.com" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      required 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Contraseña</label>
-                    <input type="password" placeholder="••••••••" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" required />
+                    <input 
+                      type="password" 
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      required 
+                      disabled={isSubmitting}
+                    />
                   </div>
-                  <button type="submit" className="w-full p-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-800 hover:shadow-red-500/25 hover:scale-[1.02] transition-all duration-300 mt-2">
-                    🔐 Iniciar Sesión
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full p-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-800 hover:shadow-red-500/25 hover:scale-[1.02] transition-all duration-300 mt-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                        Cargando...
+                      </>
+                    ) : (
+                      '🔐 Iniciar Sesión'
+                    )}
                   </button>
                   <div className="pt-4 border-t border-white/10 text-center space-y-2">
                     <a href="#" className="block text-white/80 hover:text-white text-sm hover:underline transition-colors">¿Olvidaste tu contraseña?</a>
@@ -168,22 +366,65 @@ const AuthPage = () => {
                 <>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Nombre Completo</label>
-                    <input type="text" placeholder="Juan Pérez" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" />
+                    <input 
+                      type="text" 
+                      name="nombre"
+                      value={formData.nombre}
+                      onChange={handleInputChange}
+                      placeholder="Juan Pérez" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Email</label>
-                    <input type="email" placeholder="tu@correo.com" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="tu@correo.com" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Teléfono</label>
-                    <input type="tel" placeholder="+58 412 123 4567" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" />
+                    <input 
+                      type="tel" 
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleInputChange}
+                      placeholder="+58 412 123 4567" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
                     <label className="block text-white/90 text-sm font-semibold mb-2">Contraseña</label>
-                    <input type="password" placeholder="••••••••" className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" />
+                    <input 
+                      type="password" 
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••" 
+                      className="w-full p-3 rounded-xl bg-white/10 backdrop-blur-xl border-2 border-white/20 hover:border-white/40 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400/50 transition-all duration-300 text-lg" 
+                      disabled={isSubmitting}
+                    />
                   </div>
-                  <button type="submit" className="w-full p-3 rounded-xl bg-gradient-to-r from-red-600 to-red-900 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-900 hover:shadow-red-500/25 hover:scale-[1.02] transition-all duration-300 mt-2">
-                    Crear Cuenta +
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full p-3 rounded-xl bg-gradient-to-r from-red-600 to-red-900 text-white font-bold text-lg shadow-xl hover:from-red-700 hover:to-red-900 hover:shadow-red-500/25 hover:scale-[1.02] transition-all duration-300 mt-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                        Creando...
+                      </>
+                    ) : (
+                      'Crear Cuenta +'
+                    )}
                   </button>
                   <div className="pt-4 border-t border-white/10 text-center space-y-2">
                     <p className="text-sm text-white/60 cursor-pointer hover:text-white/80 transition-all duration-200" onClick={switchForm}>
