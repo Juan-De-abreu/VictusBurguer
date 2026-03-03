@@ -24,6 +24,7 @@ function App() {
           <Route path="/ComidaRapida" element={<ComidaRapida />} /> {/* Ruta para comida rápida */}
           <Route path='/product/:productId' element={<ProductDetail/>}/>
           <Route path='/login' element={<Login/>}/>
+          {/* <Route path="/cocina"element={<ProtectedRoute isAllowed={user && user.rol === 'admin'} redirectTo="/home"><Cocina /> </ProtectedRoute>} /> */} {/* cuando tenagmos los roles */} 
         </Routes>
       <Footer/>
     </BrowserRouter>
