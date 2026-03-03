@@ -49,6 +49,48 @@ if ($segments[0] === 'api') {
                 'docs' => '/api/',
                 'disponibles' => ['products', 'orders', 'users']
             ]);
+
+        case 'inventory':
+            if ($method == 'GET') {
+                $stmt = $pdo->query("SELECT * FROM inventario");
+                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            } elseif ($method == 'PUT') {
+                // Para actualizar el stock desde la web
+                $data = json_decode(file_get_contents("php://input"), true);
+                $stmt = $pdo->prepare("UPDATE inventario SET stock_actual = :stock WHERE id_ingrediente = :id");
+                $stmt->execute(['stock' => $data['stock'], 'id' => $data['id']]);
+                echo json_encode(["status" => "updated"]);
+            }
+            break;
+
+        case 'tasks':
+            if ($method == 'GET') {
+                $stmt = $pdo->query("SELECT * FROM tareas ORDER BY fecha_creacion DESC");
+                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            } elseif ($method == 'POST') {
+                // Crear nueva tarea
+                $data = json_decode(file_get_contents("php://input"), true);
+                $stmt = $pdo->prepare("INSERT INTO tareas (descripcion, prioridad) VALUES (:desc, :prior)");
+                $stmt->execute(['desc' => $data['descripcion'], 'prior' => $data['prioridad']]);
+                echo json_encode(["id" => $pdo->lastInsertId()]);
+            } elseif ($method == 'PATCH') {
+                // Cambiar estado de la tarea (terminada/pendiente)
+                $data = json_decode(file_get_contents("php://input"), true);
+                $stmt = $pdo->prepare("UPDATE tareas SET estado = :estado WHERE id_tarea = :id");
+                $stmt->execute(['estado' => $data['estado'], 'id' => $data['id']]);
+                echo json_encode(["status" => "status updated"]);
+            }
+            break;
+
+        case 'toggle-availability':
+            // Endpoint rápido para poner un plato como "Agotado"
+            if ($method == 'POST') {
+                $data = json_decode(file_get_contents("php://input"), true);
+                $stmt = $pdo->prepare("UPDATE products SET disponible = :disp WHERE product_id = :id");
+                $stmt->execute(['disp' => $data['disponible'], 'id' => $data['id']]);
+                echo json_encode(["status" => "availability updated"]);
+            }
+            break;
     }
 } else {
     // Docs por defecto
