@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // ← NUEVO
 
 const Header = () => {
+  const { user, logout, isAuthenticated } = useAuth(); // ← AUTH CONTEXT
+  const navigate = useNavigate(); // ← PARA REDIRECCIONAR
+  
   const botones = [
     { to: "/", label: "Inicio", svg: `` },
     {
@@ -20,41 +24,50 @@ const Header = () => {
       svg: `<path d="m14,2h-2v7h-2V2h-2v7h-2V2h-2v8c0,1.65,1.35,3,3,3h1v9h2v-9h1c1.65,0,3-1.35,3-3V2Z"/><path d="m17,13h1v9h2V3c0-.55-.45-1-1-1-1.65,0-3,1.35-3,3v7c0,.55.45,1,1,1Z">`,
     },
   ];
-  
+
   const [MenuisOpen, setMenuIsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false); // ← NUEVO
   const menuRef = useRef(null);
+  const userMenuRef = useRef(null); // ← NUEVO
 
-  const toggleMenu = () => {
-    setMenuIsOpen(!MenuisOpen);
-  };
+  // Toggle menú principal
+  const toggleMenu = () => setMenuIsOpen(!MenuisOpen);
 
-  // Cerrar menú al hacer clic fuera
+  // Toggle menú usuario ← NUEVO
+  const toggleUserMenu = () => setUserMenuOpen(!userMenuOpen);
+
+  // Cerrar menús al hacer clic fuera ← MEJORADO
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (MenuisOpen && menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuIsOpen(false);
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [MenuisOpen]);
-
-  // Cerrar menú al hacer scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      if (MenuisOpen) {
-        setMenuIsOpen(false);
+      if (userMenuOpen && userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [MenuisOpen, userMenuOpen]);
+
+  // Cerrar menús al hacer scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (MenuisOpen) setMenuIsOpen(false);
+      if (userMenuOpen) setUserMenuOpen(false);
     };
-  }, [MenuisOpen]);
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [MenuisOpen, userMenuOpen]);
+
+  // ← NUEVO: Cerrar sesión
+  const handleLogout = () => {
+    logout();
+    setUserMenuOpen(false);
+    navigate('/');
+  };
 
   return (
     <>
@@ -119,24 +132,77 @@ const Header = () => {
               </ul>
             </div>
 
-            {/* Botón Instagram */}
-            <a
-              href=""
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden lg:flex items-center bg-red-900 hover:bg-[var(--segundario)]/80 text-white font-semibold text-lg px-4 mx-10 py-2 rounded-full hover:scale-105 transition-all duration-300 ml-8 whitespace-nowrap"
-            >
-              Contactanos
-              <img 
-                className={`ml-2 w-6 h-6 bg-gradient-to-br from-[#405DE6] via-[#E1306C] to-[#F77737] rounded-lg`}
-                src="/src/assets/instagram.svg" 
-                alt="instagram"           
-              />      
-            </a>
-            {/* login de usuario */}
-            <Link to={'/login'} className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)]">
-              <svg  xmlns="http://www.w3.org/2000/svg" width={30} height={30} fill={"currentColor"} viewBox="0 0 24 24">{/* Boxicons v3.0.8 https://boxicons.com | License  https://docs.boxicons.com/free */}<path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5m0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1m6-7h4c2.76 0 5 2.24 5 5H5c0-2.76 2.24-5 5-5"></path></svg>
-            </Link>
+
+            {/* ✅ HEADER USUARIO INTELIGENTE */}
+            <div className="flex items-center space-x-2 relative" ref={userMenuRef}>
+              {isAuthenticated && user ? (
+                <>
+                  {/* Nombre usuario + Engranaje */}
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full hover:bg-white/20 transition-all duration-300 group cursor-pointer"
+                       onClick={toggleUserMenu}>
+                    <span className="text-white font-semibold text-lg truncate max-w-[100px] sm:max-w-[140px]">
+                      {user.nombre || user.email}
+                    </span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      fill="currentColor" 
+                      viewBox="0 0 24 24"
+                      className={`transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`}
+                    >
+                      <path d="M12 15.5a1 1 0 0 1-.71-.3l-4-4a1 1 0 0 1 1.42-1.42L12 13.29l3.29-3.3a1 1 0 0 1 1.42 1.42l-4 4a1 1 0 0 1-.71.29z"/>
+                    </svg>
+                  </div>
+
+                  {/* ✅ MENÚ DESPLEGABLE USUARIO */}
+                  {userMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-[var(--primario)]/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-3 border-b border-white/10">
+                        <p className="text-white/90 font-semibold text-sm">
+                          {user.nombre || user.email}
+                        </p>
+                        <p className="text-white/60 text-xs mt-1">
+                          {user.email}
+                        </p>
+                      </div>
+                      <div className="py-1 text-sm">
+                        <button 
+                          onClick={() => { setUserMenuOpen(false); navigate('/ajustes'); }}
+                          className="w-full text-left px-6 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200 flex items-center space-x-3 group"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="group-hover:translate-x-1 transition-transform">Ajustes</span>
+                        </button>
+                        <button 
+                          onClick={handleLogout}
+                          className="w-full text-left px-6 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-100 rounded-xl transition-all duration-200 flex items-center space-x-3 group"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          <span className="group-hover:translate-x-1 transition-transform">Cerrar Sesión</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Ícono login (NO autenticado)
+                <Link 
+                  to="/login" 
+                  className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)] p-2"
+                  title="Iniciar Sesión"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5m0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1m6-7h4c2.76 0 5 2.24 5 5H5c0-2.76 2.24-5 5-5"></path>
+                  </svg>
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Menú móvil desplegable */}
@@ -147,7 +213,7 @@ const Header = () => {
                 : 'max-h-0 opacity-0 invisible'
             }`}
           >
-            <div className="bg-[var(--primario)]/95  backdrop-blur-md border-t border-red-500/30 pt-4 pb-8">
+            <div className="bg-[var(--primario)]/95 backdrop-blur-md border-t border-red-500/30 pt-4 pb-8">
               <ul className="space-y-2 px-4">
                 {botones.map((boton) => (
                   <li key={boton.to}>
