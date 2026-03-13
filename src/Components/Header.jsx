@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // ← NUEVO
+import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext";
 
 const Header = () => {
-  const { user, logout, isAuthenticated } = useAuth(); // ← AUTH CONTEXT
-  const navigate = useNavigate(); // ← PARA REDIRECCIONAR
+  const { user, logout, isAuthenticated } = useAuth();
+  const { totalItems } = useCart();
+  const navigate = useNavigate();
   
   const botones = [
     { to: "/", label: "Inicio", svg: `` },
@@ -26,9 +28,9 @@ const Header = () => {
   ];
 
   const [MenuisOpen, setMenuIsOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false); // ← NUEVO
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef(null);
-  const userMenuRef = useRef(null); // ← NUEVO
+  const userMenuRef = useRef(null);
 
   // Toggle menú principal
   const toggleMenu = () => setMenuIsOpen(!MenuisOpen);
@@ -66,7 +68,14 @@ const Header = () => {
   const handleLogout = () => {
     logout();
     setUserMenuOpen(false);
+    setMenuIsOpen(false);
     navigate('/');
+  };
+
+  const handleOpenCart = () => {
+    setMenuIsOpen(false);
+    setUserMenuOpen(false);
+    navigate('/carrito');
   };
 
   return (
@@ -133,57 +142,45 @@ const Header = () => {
             </div>
 
 
-            {/* ✅ HEADER USUARIO INTELIGENTE */}
-            <div className="flex items-center space-x-2 relative" ref={userMenuRef}>
+            {/* Botones de carrito + login/usuario */}
+            <div className="hidden lg:flex items-center space-x-2 relative" ref={userMenuRef}>
+              <button
+                onClick={handleOpenCart}
+                className="relative p-2 rounded-full text-white hover:text-[var(--segundario)] hover:scale-110 transition-all duration-300"
+                title="Ver Carrito"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.45c-.16.29-.25.63-.25.96 0 1.1.9 2 2 2h12v-2h-12l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.3.12-.47 0-.55-.45-1-1-1h-14zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm11 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                </svg>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-xs text-white px-1.5 py-0.5 rounded-full font-bold">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+
               {isAuthenticated && user ? (
                 <>
-                  {/* Nombre usuario + Engranaje */}
-                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full hover:bg-white/20 transition-all duration-300 group cursor-pointer"
-                       onClick={toggleUserMenu}>
-                    <span className="text-white font-semibold text-lg truncate max-w-[100px] sm:max-w-[140px]">
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full hover:bg-white/20 transition-all duration-300 group cursor-pointer" onClick={toggleUserMenu}>
+                    <span className="text-white font-semibold text-lg truncate max-w-[100px]">
                       {user.nombre || user.email}
                     </span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      fill="currentColor" 
-                      viewBox="0 0 24 24"
-                      className={`transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`}
-                    >
-                      <path d="M12 15.5a1 1 0 0 1-.71-.3l-4-4a1 1 0 0 1 1.42-1.42L12 13.29l3.29-3.3a1 1 0 0 1 1.42 1.42l-4 4a1 1 0 0 1-.71.29z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" className={`transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`}>
+                      <path d="M12 15.5a1 1 0 0 1-.71-.3l-4-4a1 1 0 0 1 1.42-1.42L12 13.29l3.29-3.3a1 1 0 0 1 1.42 1.42l-4 4a1 1 0 0 1-.71.29z" />
                     </svg>
                   </div>
 
-                  {/* ✅ MENÚ DESPLEGABLE USUARIO */}
                   {userMenuOpen && (
                     <div className="absolute top-full right-0 mt-2 w-48 bg-[var(--primario)]/95 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl shadow-black/50 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
                       <div className="px-4 py-3 border-b border-white/10">
-                        <p className="text-white/90 font-semibold text-sm">
-                          {user.nombre || user.email}
-                        </p>
-                        <p className="text-white/60 text-xs mt-1">
-                          {user.email}
-                        </p>
+                        <p className="text-white/90 font-semibold text-sm">{user.nombre || user.email}</p>
+                        <p className="text-white/60 text-xs mt-1">{user.email}</p>
                       </div>
                       <div className="py-1 text-sm">
-                        <button 
-                          onClick={() => { setUserMenuOpen(false); navigate('/ajustes'); }}
-                          className="w-full text-left px-6 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200 flex items-center space-x-3 group"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
+                        <button onClick={() => { setUserMenuOpen(false); navigate('/ajustes'); }} className="w-full text-left px-6 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200 flex items-center space-x-3 group">
                           <span className="group-hover:translate-x-1 transition-transform">Ajustes</span>
                         </button>
-                        <button 
-                          onClick={handleLogout}
-                          className="w-full text-left px-6 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-100 rounded-xl transition-all duration-200 flex items-center space-x-3 group"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
+                        <button onClick={handleLogout} className="w-full text-left px-6 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-100 rounded-xl transition-all duration-200 flex items-center space-x-3 group">
                           <span className="group-hover:translate-x-1 transition-transform">Cerrar Sesión</span>
                         </button>
                       </div>
@@ -191,12 +188,27 @@ const Header = () => {
                   )}
                 </>
               ) : (
-                // Ícono login (NO autenticado)
-                <Link 
-                  to="/login" 
-                  className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)] p-2"
-                  title="Iniciar Sesión"
-                >
+                <Link to="/login" className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)] p-2" title="Iniciar Sesión">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5m0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1m6-7h4c2.76 0 5 2.24 5 5H5c0-2.76 2.24-5 5-5"></path>
+                  </svg>
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile: carrito + login (o menu de usuario dentro del panel expandible) */}
+            <div className="flex lg:hidden items-center space-x-2">
+              <button onClick={handleOpenCart} className="relative p-2 rounded-full text-white hover:text-[var(--segundario)] transition-all duration-300" title="Ver Carrito">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.45c-.16.29-.25.63-.25.96 0 1.10.9 2 2 2h12v-2h-12l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.30.12-.47 0-.55-.45-1-1-1h-14zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm11 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                </svg>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-xs text-white px-1.5 py-0.5 rounded-full font-bold">{totalItems}</span>
+                )}
+              </button>
+
+              {!isAuthenticated && (
+                <Link to="/login" className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)] p-2" title="Iniciar Sesión">
                   <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5m0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3M4 22h16c.55 0 1-.45 1-1v-1c0-3.86-3.14-7-7-7h-4c-3.86 0-7 3.14-7 7v1c0 .55.45 1 1 1m6-7h4c2.76 0 5 2.24 5 5H5c0-2.76 2.24-5 5-5"></path>
                   </svg>
@@ -209,11 +221,24 @@ const Header = () => {
           <div 
             className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
               MenuisOpen 
-                ? 'max-h-96 opacity-100 visible' 
+                ? 'max-h-96 mb-6 opacity-100 visible' 
                 : 'max-h-0 opacity-0 invisible'
             }`}
           >
             <div className="bg-[var(--primario)]/95 backdrop-blur-md border-t border-red-500/30 pt-4 pb-8">
+              {isAuthenticated && user && (
+                <div className="px-4 mb-3 border-b border-white/20">
+                  <p className="text-white font-semibold">{user.nombre || user.email}</p>
+                  <p className="text-sm text-white/70">{user.email}</p>
+                  <div className="mt-2 flex gap-2 mb-2">
+                    <button onClick={() => { setMenuIsOpen(false); navigate('/ajustes'); }} className="flex-1 bg-white/10 text-white px-3 py-2 rounded-xl text-sm hover:bg-white/20 transition">Ajustes</button>
+                    <button onClick={handleLogout} className="flex-1 bg-red-500/20 text-red-100 px-3 py-2 rounded-xl text-sm hover:bg-red-500/30 transition">Cerrar</button>
+                  </div>
+                </div>
+              )}
+
+              
+
               <ul className="space-y-2 px-4">
                 {botones.map((boton) => (
                   <li key={boton.to}>

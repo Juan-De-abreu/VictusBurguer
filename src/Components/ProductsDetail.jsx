@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config/api';
+import { useCart } from '../contexts/CartContext';
+
 const ProductDetail = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
   const API= API_BASE_URL+`/products?product_id=${productId}`;
   // Fetch producto específico del backend - FIX data handling
   useEffect(() => {
@@ -171,7 +174,14 @@ const ProductDetail = () => {
                     whileTap={{ scale: 0.98 }}
                     className="bg-gradient-to-r from-[var(--segundario)] to-red-600 hover:from-red-600 hover:to-red-700 text-[var(--letra)] py-5 px-8 rounded-3xl font-black text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 border border-[var(--segundario)]/50"
                     onClick={() => {
-                      console.log('🛒 Agregar al carrito:', { ...product, quantity, size: selectedSize });
+                      const cartItem = {
+                        id: product.product_id || product.id || productId,
+                        nombre: product.nombre,
+                        precio: product.precio,
+                        imagen: product.imagen,
+                      };
+                      addToCart(cartItem, quantity);
+                      alert('Producto agregado al carrito');
                     }}
                   >
                     🛒 Agregar al Carrito
