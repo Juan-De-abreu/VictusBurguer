@@ -10,11 +10,11 @@ Sitio web responsive de restaurante **Victu's Burgers** con menú hamburguesa m�
 
 # Roles establecidos de fabrica
 - Cada uno de los roles por simplificacion de la logica se establecio de manera numerica que se dara a continuacion
--- 0 Cliente
-   1 Ubber
-   2 Chef
-   3 Contador
-   4 Admin
+* 0 Cliente
+* 1 Ubber
+* 2 Chef
+* 3 Contador
+* 4 Admin
 
 ## 🎨 **Variables de Color (CSS Custom Properties)**
 
