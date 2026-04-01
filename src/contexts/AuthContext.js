@@ -18,18 +18,32 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('user');
     
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Error parsing user:', e);
+        localStorage.clear();
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setToken(token);
-    setUser(userData);
+ const login = (token, userData) => {
+  console.log('API userData:', userData); // DEBUG
+  
+  const userFinal = {
+    ...userData,
+    role: Number(userData.rol ?? 0)  // ← role NO rol, maneja null
   };
+  
+  console.log('userFinal:', userFinal); // DEBUG
+  
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(userFinal));
+  setToken(token);
+  setUser(userFinal);
+};
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -47,6 +61,10 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user && !!token
   };
 
-  // ✅ JSX normal (Vite lo maneja perfecto)
-  return React.createElement(AuthContext.Provider, { value }, children);
+  // ✅ CORREGIDO: value prop correctamente
+  return React.createElement(AuthContext.Provider, { 
+    value: value 
+  }, children);
 };
+
+export default AuthProvider;

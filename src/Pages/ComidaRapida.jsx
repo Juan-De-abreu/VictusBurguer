@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
+import ProductCartControls from '../Components/ProductCartControls';
 
 const ComidaRapida = () => {
   // 1. Estados para la lógica de carga y datos
@@ -67,6 +68,7 @@ const ComidaRapida = () => {
               </div>
 
               <div className="p-6 flex flex-col flex-grow relative">
+                <div>
                 <h3 className="text-2xl font-serif italic font-bold text-[var(--letra)] mb-3 group-hover:text-red-600 transition-colors duration-300">
                   {item.nombre}
                 </h3>
@@ -80,22 +82,8 @@ const ComidaRapida = () => {
                   >
                     Ver detalles
                   </Link>
-                  <button className="bg-red-900 hover:bg-red-700 text-white p-3 rounded-full transition-all duration-300 hover:scale-110 shadow-lg group-hover:shadow-red-500/50">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
+                  <ProductCartControls item={item} />
+                </div>       
                 </div>
               </div>
             </div>

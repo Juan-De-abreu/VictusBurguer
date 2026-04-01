@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion"; // npm i framer-motion
 import { Link } from "react-router-dom";
-import { useCart } from "../../contexts/CartContext";
+import ProductCartControls from '../../Components/ProductCartControls';
 import { API_BASE_URL } from '../../config/api';
 
 const TrendingMenus = () => {
   const [trending, setTrending] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
   const API = API_BASE_URL + "/products/trending";
   // Fetch productos trending del backend
   useEffect(() => {
@@ -115,24 +114,9 @@ const TrendingMenus = () => {
                   </div>
                 </div>
 
-                {/* Botón Agregar */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full mt-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-6 rounded-2xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all duration-300"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addToCart({
-                      id: product.product_id || product.id,
-                      nombre: product.nombre,
-                      precio: product.precio,
-                      imagen: product.imagen,
-                    }, 1);
-                    alert('Producto agregado al carrito');
-                  }}
-                >
-                  🛒 Agregar al Carrito
-                </motion.button>
+                <div className="mt-6 flex justify-center">
+                  <ProductCartControls item={product} />
+                </div>
               </div>
             </motion.div>
             </Link>

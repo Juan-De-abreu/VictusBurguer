@@ -7,6 +7,8 @@ const Header = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { totalItems } = useCart();
   const navigate = useNavigate();
+  const userRole = user?.rol;
+  const canAccessDashboard = [1,2,3,4].includes(userRole);
   
   const botones = [
     { to: "/", label: "Inicio", svg: `` },
@@ -144,7 +146,7 @@ const Header = () => {
 
             {/* Botones de carrito + login/usuario */}
             <div className="hidden lg:flex items-center space-x-2 relative" ref={userMenuRef}>
-              <button
+              {isAuthenticated && (user) &&(              <button
                 onClick={handleOpenCart}
                 className="relative p-2 rounded-full text-white hover:text-[var(--segundario)] hover:scale-110 transition-all duration-300"
                 title="Ver Carrito"
@@ -157,7 +159,8 @@ const Header = () => {
                     {totalItems}
                   </span>
                 )}
-              </button>
+              </button>)}
+
 
               {isAuthenticated && user ? (
                 <>
@@ -177,6 +180,11 @@ const Header = () => {
                         <p className="text-white/60 text-xs mt-1">{user.email}</p>
                       </div>
                       <div className="py-1 text-sm">
+                        {canAccessDashboard && (
+                          <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard'); }} className="w-full text-left px-6 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200 flex items-center space-x-3 group">
+                            <span className="group-hover:translate-x-1 transition-transform">Dashboard</span>
+                          </button>
+                        )}
                         <button onClick={() => { setUserMenuOpen(false); navigate('/ajustes'); }} className="w-full text-left px-6 py-3 text-white/90 hover:bg-white/10 hover:text-white rounded-xl transition-all duration-200 flex items-center space-x-3 group">
                           <span className="group-hover:translate-x-1 transition-transform">Ajustes</span>
                         </button>
@@ -196,17 +204,17 @@ const Header = () => {
               )}
             </div>
 
-            {/* Mobile: carrito + login (o menu de usuario dentro del panel expandible) */}
+            {/* Mobile: carrito + login (o menu de usuario dentro del panel expandible) */} 
             <div className="flex lg:hidden items-center space-x-2">
-              <button onClick={handleOpenCart} className="relative p-2 rounded-full text-white hover:text-[var(--segundario)] transition-all duration-300" title="Ver Carrito">
+              
+{isAuthenticated && (<button onClick={handleOpenCart} className="relative p-2 rounded-full text-white hover:text-[var(--segundario)] transition-all duration-300" title="Ver Carrito">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M7 4h-2l-1 2h-2v2h2l3.6 7.59-1.35 2.45c-.16.29-.25.63-.25.96 0 1.10.9 2 2 2h12v-2h-12l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.30.12-.47 0-.55-.45-1-1-1h-14zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm11 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
                 </svg>
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-xs text-white px-1.5 py-0.5 rounded-full font-bold">{totalItems}</span>
                 )}
-              </button>
-
+              </button>)}
               {!isAuthenticated && (
                 <Link to="/login" className="text-[var(--letra)] hover:scale-110 transition-all duration-200 hover:text-[var(--segundario)] p-2" title="Iniciar Sesión">
                   <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 24 24">

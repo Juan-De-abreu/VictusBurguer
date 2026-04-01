@@ -51,7 +51,13 @@ const AuthPage = () => {
 
       if (response.data.success) {
         login(response.data.token, response.data.user);
-        navigate('/');
+
+        const role = Number(response.data.user?.rol);
+        if (role === 1) {
+          navigate('/');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setError(response.data.message || 'Error en credenciales');
       }

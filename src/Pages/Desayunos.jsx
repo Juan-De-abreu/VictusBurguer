@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
+import ProductCartControls from '../Components/ProductCartControls';
+
 const Desayunos = () => {
   // 1. Definimos el estado para guardar los productos y el estado de carga
   const [products, setProducts] = useState([]);
@@ -81,11 +83,7 @@ const Desayunos = () => {
                     Ver detalles
                   </Link>
 
-                  <button className="bg-red-900 hover:bg-red-700 text-white p-3 rounded-full transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
+                  <ProductCartControls item={item} />
                 </div>
               </div>
             </div>

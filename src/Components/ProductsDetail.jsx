@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+void motion;
 import { API_BASE_URL } from '../config/api';
 import { useCart } from '../contexts/CartContext';
 
@@ -9,16 +10,24 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
-  const API= API_BASE_URL+`/products?product_id=${productId}`;
+  const { cart, addToCart, updateQuantity } = useCart();
   // Fetch producto específico del backend - FIX data handling
   useEffect(() => {
+    const API = `${API_BASE_URL}/products?product_id=${productId}`;
+
     fetch(API)
       .then(res => res.json())
-      .then(data => {
+      .then((data) => {
         // Fix: Maneja objeto directo O array
         if (data && (data.product_id || (Array.isArray(data) && data.length > 0))) {
-          setProduct(data.product_id ? data : data[0]);
+          const activeProduct = data.product_id ? data : data[0];
+          setProduct(activeProduct);
+
+          const itemId = activeProduct.product_id ?? activeProduct.id ?? Number(productId);
+          const existing = cart.find((item) => item.id === itemId);
+          const initialQty = existing && existing.quantity > 0 ? Number(existing.quantity) : 1;
+
+          setQuantity(initialQty);
         }
         setLoading(false);
       })
@@ -26,7 +35,29 @@ const ProductDetail = () => {
         console.error('Error:', err);
         setLoading(false);
       });
+  // `cart` intentionally excluded to no sincronizar automáticamente cuando cambia desde fuera en cards.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    const itemId = product.product_id ?? product.id ?? Number(productId);
+    const cartItem = {
+      id: itemId,
+      nombre: product.nombre,
+      precio: Number(product.precio || 0),
+      imagen: product.image_url || product.imagen || ''
+    };
+
+    const existing = cart.find((item) => item.id === itemId);
+
+    if (existing) {
+      updateQuantity(itemId, quantity);
+    } else {
+      addToCart(cartItem, quantity);
+    }
+  };
 
   if (loading) {
     return (
@@ -130,14 +161,17 @@ const ProductDetail = () => {
                 {/* Precio */}
                 <div className="flex items-baseline gap-4">
                   <span className="text-5xl lg:text-6xl font-black text-[var(--segundario)]">
-                    ${product.precio}
+                    {product.descuento ? `$${product.precio*(product.descuento/100)}` : `$${product.precio}`}
                   </span>
+                  {product.descuento && (
                   <span className="text-2xl text-[var(--letra)]/60 line-through">
-                    ${Math.round(product.precio * 1.2)}
+                    {product.precio}
                   </span>
+                  )}
+                  {product.descuento && (
                   <span className="bg-green-500 text-[var(--letra)] px-3 py-1 rounded-full text-sm font-bold">
-                    15% OFF
-                  </span>
+                    {product.descuento}% OFF
+                  </span>)}
                 </div>
 
                 {/* Cantidad */}
@@ -145,7 +179,7 @@ const ProductDetail = () => {
                   <label className="text-lg font-semibold text-[var(--letra)]">Cantidad</label>
                   <div className="flex items-center bg-[var(--body2)]/50 backdrop-blur-sm rounded-2xl p-1 border border-[var(--segundario)]/30">
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(0, quantity - 1))}
                       className="w-12 h-12 flex items-center justify-center text-xl font-bold text-[var(--letra)] hover:text-[var(--segundario)] transition-colors"
                     >
                       -
@@ -163,9 +197,15 @@ const ProductDetail = () => {
                 {/* Total */}
                 <div className="py-3">
                   <label className="text-lg font-semibold text-[var(--letra)]">
-                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * product.precio).toFixed(2)}</span>
+                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * (product.precio * (product.descuento/100))).toFixed(2)}</span>
                   </label>
+                  {product.descuento && (
+                  <span className="text-2xl ml-2 text-[var(--letra)]/60 line-through">
+                    {quantity * product.precio}
+                  </span>
+                  )}
                 </div>
+                
 
                 {/* Botones Acción */}
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -173,16 +213,7 @@ const ProductDetail = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="bg-gradient-to-r from-[var(--segundario)] to-red-600 hover:from-red-600 hover:to-red-700 text-[var(--letra)] py-5 px-8 rounded-3xl font-black text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 border border-[var(--segundario)]/50"
-                    onClick={() => {
-                      const cartItem = {
-                        id: product.product_id || product.id || productId,
-                        nombre: product.nombre,
-                        precio: product.precio,
-                        imagen: product.imagen,
-                      };
-                      addToCart(cartItem, quantity);
-                      alert('Producto agregado al carrito');
-                    }}
+                    onClick={handleAddToCart}
                   >
                     🛒 Agregar al Carrito
                   </motion.button>

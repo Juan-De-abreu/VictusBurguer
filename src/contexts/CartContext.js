@@ -25,21 +25,25 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (item, quantity = 1) => {
-    if (!item || !item.id) return;
+ const addToCart = (item, quantity = 1) => {
+  if (!item || !item.id) return;
 
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id
-            ? { ...i, quantity: Math.max(1, i.quantity + quantity) }
-            : i
-        );
-      }
-      return [...prev, { ...item, quantity: Math.max(1, quantity) }];
-    });
-  };
+  setCart((prev) => {
+    const existing = prev.find((i) => i.id === item.id);
+    if (existing) {
+      return prev.map((i) =>
+        i.id === item.id
+          ? { ...i, quantity: Math.max(1, i.quantity + quantity) }
+          : i
+      );
+    }
+    return [...prev, { 
+      ...item, 
+      quantity: Math.max(1, quantity),
+      descuento: item.descuento || 0  // ← CRÍTICO: Preservar descuento
+    }];
+  });
+};
 
   const removeFromCart = (id) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
@@ -48,7 +52,7 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = (id, quantity) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+        item.id === id ? { ...item, quantity: Math.max(0, quantity) } : item
       )
     );
   };
