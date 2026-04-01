@@ -1,10 +1,9 @@
 <?php
-// api/auth.php - AUTOCONTENIDO (NO depende de index.php)
+// api/auth.php - CORREGIDO
 header('Content-Type: application/json; charset=utf-8');
 
-// 🔧 CONEXIÓN DIRECTA DENTRO DEL ARCHIVO
 $host = 'localhost';
-$dbname = 'dbburguer';  // ← TU BASE DE DATOS
+$dbname = 'dbburguer';
 $username = 'root';
 $password = '';
 
@@ -48,7 +47,8 @@ switch($method) {
 
 function login($pdo, $data) {
     try {
-        $stmt = $pdo->prepare("SELECT user_id, nombre, email, password FROM users WHERE email = ? LIMIT 1");
+        // ✅ AGREGADO: rol en SELECT
+        $stmt = $pdo->prepare("SELECT user_id, nombre, email, password, rol FROM users WHERE email = ? LIMIT 1");
         $stmt->execute([$data['email']]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -61,7 +61,8 @@ function login($pdo, $data) {
                 'user' => [
                     'id' => $user['user_id'],
                     'nombre' => $user['nombre'],
-                    'email' => $user['email']
+                    'email' => $user['email'],
+                    'rol' => $user['rol']  // ✅ AGREGADO: rol en respuesta
                 ]
             ]);
         } else {
@@ -76,7 +77,6 @@ function login($pdo, $data) {
 
 function register($pdo, $data) {
     try {
-        // Verificar email único
         $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = ?");
         $stmt->execute([$data['email']]);
         
@@ -85,9 +85,8 @@ function register($pdo, $data) {
             return;
         }
         
-        // Insertar usuario
         $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (nombre, email, telefono, password) VALUES (?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO users (nombre, email, telefono, password, rol) VALUES (?, ?, ?, ?, 0)");  // ✅ rol=0 por defecto
         $result = $stmt->execute([
             $data['nombre'],
             $data['email'],
@@ -96,10 +95,11 @@ function register($pdo, $data) {
         ]);
         
         if ($result) {
+            $newUserId = $pdo->lastInsertId();
             echo json_encode([
                 'success' => true,
                 'message' => '¡Usuario creado! Inicia sesión.',
-                'user_id' => $pdo->lastInsertId()
+                'user_id' => $newUserId
             ]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al crear usuario']);
