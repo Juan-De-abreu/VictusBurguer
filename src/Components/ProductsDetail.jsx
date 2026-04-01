@@ -161,7 +161,7 @@ const ProductDetail = () => {
                 {/* Precio */}
                 <div className="flex items-baseline gap-4">
                   <span className="text-5xl lg:text-6xl font-black text-[var(--segundario)]">
-                    {product.descuento ? `$${product.precio*(product.descuento/100)}` : `$${product.precio}`}
+                    {product.descuento ? `$${product.precio*(1-product.descuento/100)}` : `$${product.precio}`}
                   </span>
                   {product.descuento && (
                   <span className="text-2xl text-[var(--letra)]/60 line-through">
@@ -197,7 +197,7 @@ const ProductDetail = () => {
                 {/* Total */}
                 <div className="py-3">
                   <label className="text-lg font-semibold text-[var(--letra)]">
-                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * (product.precio * (product.descuento/100))).toFixed(2)}</span>
+                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * (product.precio * (1-product.descuento/100))).toFixed(2)}</span>
                   </label>
                   {product.descuento && (
                   <span className="text-2xl ml-2 text-[var(--letra)]/60 line-through">

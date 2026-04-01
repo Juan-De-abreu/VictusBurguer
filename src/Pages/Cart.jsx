@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import QuantityInput from '../contexts/QuantityInput';
 
 const CartPage = () => {
   const { cart, totalItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -67,13 +68,12 @@ const CartPage = () => {
           </div>
         ) : (
           <>
-            <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-10">
+            <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-10 px-6 sm:px-10">
               {cart.map((item) => {
                 const precioReal = Number(item.precio || 0);
                 const descuento = Number(item.descuento || 0);
                 const precioDescuento = descuento > 0 ? precioReal * (1 - descuento / 100) : precioReal;
-                const subtotalDescuento = precioDescuento * (item.quantity || 1);
-                const subtotalReal = precioReal * (item.quantity || 1);
+                const subtotalDescuento =  precioDescuento * (item.quantity || 1);
                 const ahorroItem = descuento > 0 ? (precioReal * (descuento / 100) * item.quantity) : 0;
 
                 return (
@@ -82,10 +82,10 @@ const CartPage = () => {
                     className="flex flex-col sm:flex-row sm:items-start lg:items-center gap-4 sm:gap-6 bg-[var(--body2)]/80 backdrop-blur-sm border border-white/30 rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 truncate">{item.nombre}</h2>
+                      <h2 className="text-2xl text-center sm:text-left sm:text-xl md:text-2xl font-bold mb-3 sm:mb-2 truncate border-b-1 border-white/30">{item.nombre}</h2>
                       
                       {/* 💰 PRECIO CON DESCUENTO */}
-                      <p className="text-md sm:text-base md:text-lg text-gray-300 mb-1">
+                      <p className="text-lg sm:text-base md:text-lg text-gray-300 mb-1">
                         Precio:{' '}
                         <strong>
                           {descuento > 0 ? (
@@ -101,7 +101,7 @@ const CartPage = () => {
                       </p>
 
                       {/* 📊 SUBTOTAL CON DESCUENTO */}
-                      <p className="text-lg sm:text-base md:text-lg text-gray-300">
+                      <p className="text-xl sm:text-base md:text-lg text-gray-300">
                         Subtotal ({item.quantity}): <strong>${subtotalDescuento.toFixed(2)}</strong>
                       </p>
 
@@ -113,34 +113,40 @@ const CartPage = () => {
                       )}
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
-                      <div className="flex items-center w-full sm:w-auto gap-2 bg-white/20 backdrop-blur-sm rounded-xl p-2 sm:p-3">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1));
-                          }}
-                          className="flex-1 sm:w-10 sm:h-10 sm:flex-none bg-[var(--primario)] text-white rounded-lg flex items-center justify-center text-sm sm:text-lg hover:bg-[var(--segundario)] transition-all aspect-square"
-                          type="button"
-                        >
-                          -
-                        </button>
-                        <span className="w-14 sm:w-16 text-center text-lg sm:text-xl font-bold bg-white/30 rounded-lg px-2 sm:px-4 py-2 sm:py-2 min-w-[2.5rem]">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            updateQuantity(item.id, (item.quantity || 1) + 1);
-                          }}
-                          className="flex-1 sm:w-10 sm:h-10 sm:flex-none bg-[var(--primario)] text-white rounded-lg flex items-center justify-center text-sm sm:text-lg hover:bg-[var(--segundario)] transition-all aspect-square"
-                          type="button"
-                        >
-                          +
-                        </button>
-                      </div>
+                    <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6 sm:gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
+
+<div className="flex items-center sm:w-auto h-20 gap-2 bg-white/20 backdrop-blur-sm rounded-xl p-2 sm:p-3">
+  <button
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1));
+    }}
+    className="flex p-2 px-5 sm:w-10 sm:h-10 sm:flex-none bg-[var(--primario)] text-white rounded-lg flex items-center justify-center text-3xl sm:text-lg hover:bg-[var(--segundario)] transition-all aspect-square"
+    type="button"
+  >
+    -
+  </button>
+  
+  {/* 🆕 INPUT CLICK-TO-EDIT */}
+  <QuantityInput 
+    quantity={item.quantity || 1} 
+    onChange={(newQty) => updateQuantity(item.id, newQty)}
+    className="w-14 sm:w-16 text-center text-lg sm:text-xl font-bold bg-white/30 rounded-lg h-10 min-w-[2.5rem]"
+  />
+  
+  <button
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      updateQuantity(item.id, (item.quantity || 1) + 1);
+    }}
+    className="flex p-2 px-5 sm:w-10 sm:h-10 sm:flex-none bg-[var(--primario)] text-white rounded-lg flex items-center justify-center text-sm sm:text-lg hover:bg-green-700 transition-all aspect-square"
+    type="button"
+  >
+    +
+  </button>
+</div>
                       
                       <button
                         onClick={(e) => {
@@ -148,7 +154,7 @@ const CartPage = () => {
                           e.stopPropagation();
                           removeFromCart(item.id);
                         }}
-                        className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-red-500/90 text-white rounded-xl font-semibold text-sm sm:text-base hover:bg-red-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
+                        className="w-[70%] sm:w-auto px-4 sm:px-6 py-3 bg-red-500/90 text-white rounded-xl font-semibold text-md sm:text-base hover:bg-red-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
                       >
                         🗑️ Eliminar
                       </button>
