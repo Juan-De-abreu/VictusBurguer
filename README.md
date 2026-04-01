@@ -33,6 +33,9 @@ Sitio web responsive de restaurante **Victu's Burgers** con men√∫ hamburguesa m√
 
 # Actualizaciones
 
+### 01/04/2026
+- finalizacion en ajustes de descuento, 100x100 funcional y aplicable desde cualquier cualquier punto, reutilizacion de codigo productcard
+
 ### 28/3/2026
 - sistema de seguridad implementado mediante bibliotecas externas de React(React protected) para asi asegurar que cada cuenta tenga ingreso solo a su rol asignado(si es register comun sera cliente) siendo este dashboard solamente con header y footer de trabajador, al ser cliente tendra visual solo de sus pedidos etc
 
