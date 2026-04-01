@@ -25,6 +25,10 @@ WAMPP/XAMPP: Apache + MySQL ON
 - funcionamiento mas complejo de inicio de sesion y abseso robusto sobre el contenido delicado de la pagina
   
 # Actualizaciones
+
+## 01/04/20266
+- ajustes para la globalizacion del inicio de sesion
+
 ## 21/1/2026
 - Juan de abreu
 - conexion a base de datos
