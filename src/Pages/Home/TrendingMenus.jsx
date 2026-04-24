@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion"; // npm i framer-motion
 import { Link } from "react-router-dom";
 import ProductCartControls from '../../Components/ProductCartControls';
+import ProductCard from "../../Components/ProductCard";
 import { API_BASE_URL } from '../../config/api';
 
 const TrendingMenus = () => {
@@ -52,75 +53,9 @@ const TrendingMenus = () => {
 
         {/* Grid Trending */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 relative space-y-6">
-          {trending.map((product, index) => (
-            <Link to={`/product/${product.product_id}`}>
-            <motion.div
-              key={product.product_id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="group/card cursor-pointer bg-[var(--body)] text-center rounded-3xl text-[var(--letra)] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-400 border border-transparent relative z-0 hover:z-10 
-                  hover:scale-105 hover:-translate-y-2 opacity-100
-                  data-[focus=false]:scale-[0.92] data-[focus=false]:opacity-70"
-              data-focus="true" // Estado inicial
-            >
-              {/* Imagen */}
-              <div className="relative h-64 lg:h-72 overflow-hidden">
-                <img
-                  src={product.image_url || "/api-placeholder.jpg"}
-                  alt={product.nombre}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                {product.is_trending && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                      🔥 Tendencia
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Contenido */}
-              <div className="p-6 lg:p-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-3 py-1 bg-[var(--body2)] text-red-700 rounded-full text-xs font-semibold">
-                    {product.nombre_categoria?.toUpperCase()}
-                  </span>
-                </div>
-
-                <h3 className="text-xl lg:text-2xl font-bold mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
-                  {product.nombre}
-                </h3>
-
-                {product.descripcion && (
-                  <p className="text-sm lg:text-base mb-4 line-clamp-2">
-                    {product.descripcion}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-2xl lg:text-3xl font-bold text-red-600">
-                      ${product.precio}
-                    </span>
-                    <span className="text-sm text-gray-500 line-through ml-2">
-                      ${Math.round(product.precio * 1.2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <span>⭐</span>
-                    <span>4.8</span>
-                    <span className="ml-2">(245)</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-center">
-                  <ProductCartControls item={product} />
-                </div>
-              </div>
-            </motion.div>
-            </Link>
-          ))}
+          {trending.map((item) => (
+        <ProductCard key={item.product_id} item={item} />
+      ))}
         </div>
 
         <style jsx>{`
