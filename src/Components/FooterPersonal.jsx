@@ -2,7 +2,7 @@ import React from 'react'
 
 const FooterPersonal = () => {
   return (
-    <div>FooterPersonal</div>
+    <div className='py-10 bg-black text-white'>FooterPersonal</div>
   )
 }
 

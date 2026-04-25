@@ -6,7 +6,8 @@ const Ajustes = () => {
   const [formData, setFormData] = useState({
     nombre: user?.nombre || '',
     email: user?.email || '',
-    telefono: user?.telefono || ''
+    telefono: user?.telefono || '',
+    contraseña: user?.contraseña || ''
   });
   const [message, setMessage] = useState('');
 
@@ -25,6 +26,7 @@ const Ajustes = () => {
       nombre: formData.nombre,
       email: formData.email,
       telefono: formData.telefono,
+      contraseña: formData.contraseña
     };
 
     login(token, updatedUser);
@@ -64,6 +66,16 @@ const Ajustes = () => {
               type="text"
               name="telefono"
               value={formData.telefono}
+              onChange={handleChange}
+              className="w-full mt-2 p-3 rounded-xl border border-red-500/30 bg-[var(--body)]"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-semibold">Contraseña</span>
+            <input
+              type="password"
+              name="contraseña"
+              value={formData.contraseña}
               onChange={handleChange}
               className="w-full mt-2 p-3 rounded-xl border border-red-500/30 bg-[var(--body)]"
             />

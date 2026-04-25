@@ -25,7 +25,7 @@ const ProductCard = ({ item, basePath = '/product' }) => {
           {/* 💰 PRECIO + DESCUENTO */}
           <div className={`absolute top-4 right-4 z-20 bg-[var(--body)]/90 backdrop-blur text-[var(--letra)] font-bold px-4 py-2 rounded-full shadow-lg border border-red-500/20 ${item.descuento ? 'animate-saltorebote' : ''}`}>
             ${precioDescuento}
-            {item.descuento ? <span className="text-sm text-red-500 ml-2">-{item.descuento}%</span> : null}
+            {item.descuento ? <span className='line-through text-red-700 pl-2'>{item.precio}$</span> : null}
           </div>
         </div>
 
@@ -42,7 +42,7 @@ const ProductCard = ({ item, basePath = '/product' }) => {
             {/* 🔗 ACCIONES */}
             <div className="mt-auto pt-4 border-t border-[var(--letra)]/10 flex justify-between items-center">
               <Link
-                to={`${basePath}/producto/${item.product_id}`}
+                 to={`${basePath}/${item.product_id}`}
                 className="text-sm font-semibold text-[var(--letra)] hover:text-red-500 transition-colors flex items-center gap-2"
               >
                 Ver detalles →
