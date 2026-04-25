@@ -76,6 +76,27 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
           </h1>
           {user?.nombre && <p className="text-white/90 text-base font-semibold">{user.nombre}</p>}
         </div>
+
+        {/* 🚪 AJUSTES + LOGOUT */}
+      <div className="grid grid-cols-2 gap-2 pt-4">
+  <button
+    onClick={() => setAjustesModalOpen(true)}
+    className="w-full h-12 flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-colors duration-300"
+  >
+    <span className="hidden sm:inline mr-1">Ajustes</span>
+    <span className="text-xl">⚙️</span>
+  </button>
+
+  <button
+    onClick={handleLogout}
+    className="w-full h-12 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-colors duration-300 text-sm"
+  >
+    <span className="hidden sm:inline mr-1">Cerrar</span>
+    <span className="hidden sm:inline mr-1">Sesión</span>
+    <span className="text-xl">🚪</span>
+  </button>
+</div>
+
       </div>
 
       {/* 📋 MENÚ */}
@@ -103,24 +124,7 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
         })}
       </nav>
 
-      {/* 🚪 AJUSTES + LOGOUT */}
-      <div className="p-4 border-t border-red-500/30 mt-auto space-y-2">
-        <button
-          onClick={() => setAjustesModalOpen(true)} // ✅ PROP DESDE DASHBOARD
-          className="w-full flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
-        >
-          <span className="text-xl">⚙️</span>
-          <span>Ajustes</span>
-        </button>
-        
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center space-x-3 p-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
-        >
-          <span className="text-xl">🚪</span>
-          <span>Cerrar Sesión</span>
-        </button>
-      </div>
+      
     </div>
   );
 };

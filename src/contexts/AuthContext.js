@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   
   const userFinal = {
     ...userData,
-    role: Number(userData.rol ?? 0)  // ← role NO rol, maneja null
+    role: Number(userData.rol ?? 0) ,
   };
   
   console.log('userFinal:', userFinal); // DEBUG

@@ -74,7 +74,7 @@ function App() {
                 <Route path="menos-vendido" element={<RoleProtectedRoute allowedRoles={[3,4]}><MenosVendido /></RoleProtectedRoute>} />
                 
                 {/* DEFAULT */}
-                <Route index element={<div className="flex items-center justify-center min-h-screen p-8"><h1 className="text-5xl font-black text-center text-white">Selecciona del menú <br /><span className="text-sm text-center">NOTA:algunas opciones son muy extensas para celulares</span></h1></div>} />
+                <Route index element={<div className="flex items-center justify-center min-h-screen p-8"><h1 className="text-5xl font-black text-center text-white">Selecciona del menú <br /><span className="text-sm lg:hidden text-center">NOTA:algunas opciones son muy extensas para celulares</span></h1></div>} />
               </Route>
               
               <Route path="*" element={<Navigate to="/" replace />} />
