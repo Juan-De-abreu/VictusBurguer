@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 03-04-2026 a las 23:49:06
+-- Tiempo de generación: 27-04-2026 a las 02:24:51
 -- Versión del servidor: 9.1.0
 -- Versión de PHP: 8.3.14
 
@@ -117,8 +117,17 @@ CREATE TABLE IF NOT EXISTS `favorites` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_product` int NOT NULL,
   `id_user` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+  PRIMARY KEY (`id`),
+  KEY `id_product` (`id_product`),
+  KEY `id_user` (`id_user`)
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+--
+-- Volcado de datos para la tabla `favorites`
+--
+
+INSERT INTO `favorites` (`id`, `id_product`, `id_user`) VALUES
+(11, 8, 12);
 
 -- --------------------------------------------------------
 

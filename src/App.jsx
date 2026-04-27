@@ -24,6 +24,7 @@ import Facturas from "./Pages/Dashboard/Facturas";
 import MasVendido from "./Pages/Dashboard/MasVendido";
 import MenosVendido from "./Pages/Dashboard/MenosVendido";
 import AjustesPersonal from "./Pages/Dashboard/AjustesPersonal";
+import Favorites from "./Pages/Favorites";
 
 // Layouts
 const PublicLayout = ({ children }) => (
@@ -53,6 +54,8 @@ function App() {
               <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
               <Route path="/Desayunos" element={<PublicRoute><Desayunos /></PublicRoute>} />
               <Route path="/Almuerzos" element={<PublicRoute><Almuerzos /></PublicRoute>} />
+                            <Route path="/favoritos" element={<PublicRoute><Favorites /></PublicRoute>} />
+
               <Route path="/ComidaRapida" element={<PublicRoute><ComidaRapida /></PublicRoute>} />
               <Route path="/product/:productId" element={<PublicRoute><ProductDetail /></PublicRoute>} />
               <Route path="/carrito" element={<PublicRoute><Cart /></PublicRoute>} />

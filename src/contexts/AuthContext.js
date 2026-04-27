@@ -30,14 +30,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
  const login = (token, userData) => {
-  console.log('API userData:', userData); // DEBUG
   
   const userFinal = {
     ...userData,
     role: Number(userData.rol ?? 0) ,
   };
   
-  console.log('userFinal:', userFinal); // DEBUG
   
   localStorage.setItem('token', token);
   localStorage.setItem('user', JSON.stringify(userFinal));

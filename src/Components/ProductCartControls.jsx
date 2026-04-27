@@ -1,8 +1,14 @@
 import { useMemo } from 'react';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const ProductCartControls = ({ item }) => {
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const itemId = item.product_id ?? item.id;
 
   const quantity = useMemo(() => {
@@ -18,14 +24,30 @@ const ProductCartControls = ({ item }) => {
     descuento: Number(item.descuento || item.discount || 0)
   };
 
-  const handleAdd = (e) => { 
-    e.preventDefault();  
+  const handleAdd = (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    addToCart(dataItem, 1); };
+
+    if (!user) {
+      navigate('/login', {
+        state: {
+          from: location.pathname,
+          addToCartProduct: {
+            ...dataItem,
+            quantity: 1
+          }
+        }
+      });
+      return;
+    }
+
+    addToCart(dataItem, 1);
+  };
 
   const handleRemove = (e) => {
-    e.preventDefault();  
+    e.preventDefault();
     e.stopPropagation();
+
     if (quantity <= 0) {
       removeFromCart(itemId);
     } else {

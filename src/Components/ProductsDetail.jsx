@@ -1,24 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 void motion;
+import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProductDetail = () => {
   const { productId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const { cart, addToCart, updateQuantity } = useCart();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { cart, addToCart, updateQuantity } = useCart();
-  // Fetch producto específico del backend - FIX data handling
+  const [favorites, setFavorites] = useState([]);
+  const [pendingFavorite, setPendingFavorite] = useState(null);
+
   useEffect(() => {
     const API = `${API_BASE_URL}/products?product_id=${productId}`;
 
     fetch(API)
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data) => {
-        // Fix: Maneja objeto directo O array
         if (data && (data.product_id || (Array.isArray(data) && data.length > 0))) {
           const activeProduct = data.product_id ? data : data[0];
           setProduct(activeProduct);
@@ -31,31 +38,138 @@ const ProductDetail = () => {
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Error:', err);
         setLoading(false);
       });
-  // `cart` intentionally excluded to no sincronizar automáticamente cuando cambia desde fuera en cards.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId]);
+  }, [productId, cart]);
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (!user?.user_id && !user?.id) {
+        setFavorites([]);
+        return;
+      }
+
+      try {
+        const userId = user.user_id || user.id;
+        const res = await axios.get(`${API_BASE_URL}/favorites?user_id=${userId}`);
+        setFavorites(res.data?.data || []);
+      } catch (err) {
+        console.error('Error cargando favoritos:', err);
+        setFavorites([]);
+      }
+    };
+
+    loadFavorites();
+  }, [user]);
+
+  useEffect(() => {
+    const runPendingFavorite = async () => {
+      if (!user || !pendingFavorite) return;
+
+      try {
+        const userId = user.user_id || user.id;
+
+        await axios.post(`${API_BASE_URL}/favorites.php`, {
+          id_user: userId,
+          id_product: pendingFavorite.id
+        });
+
+        const res = await axios.get(`${API_BASE_URL}/favorites?user_id=${userId}`);
+        setFavorites(res.data?.data || []);
+      } catch (err) {
+        console.error('Error agregando favorito pendiente:', err);
+      } finally {
+        setPendingFavorite(null);
+        navigate(location.state?.from || `/product/${productId}`, { replace: true });
+      }
+    };
+
+    runPendingFavorite();
+  }, [user, pendingFavorite, navigate, location.state, productId]);
+
+  const itemId = product?.product_id ?? product?.id ?? Number(productId);
+  const isFavorite = favorites.some((item) => Number(item.id_product || item.product_id || item.id) === Number(itemId));
 
   const handleAddToCart = () => {
     if (!product) return;
 
-    const itemId = product.product_id ?? product.id ?? Number(productId);
+    if (!user) {
+      navigate('/login', {
+        state: {
+          from: location.pathname,
+          addToCartProduct: {
+            id: product.product_id ?? product.id ?? Number(productId),
+            nombre: product.nombre,
+            precio: Number(product.precio || 0),
+            imagen: product.image_url || product.imagen || '',
+            quantity
+          }
+        }
+      });
+      return;
+    }
+
+    const cartId = product.product_id ?? product.id ?? Number(productId);
     const cartItem = {
+      id: cartId,
+      nombre: product.nombre,
+      precio: Number(product.precio || 0),
+      imagen: product.image_url || product.imagen || ''
+    };
+
+    const existing = cart.find((item) => item.id === cartId);
+
+    if (existing) {
+      updateQuantity(cartId, quantity);
+    } else {
+      addToCart(cartItem, quantity);
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!product) return;
+
+    const favoriteItem = {
       id: itemId,
       nombre: product.nombre,
       precio: Number(product.precio || 0),
       imagen: product.image_url || product.imagen || ''
     };
 
-    const existing = cart.find((item) => item.id === itemId);
+    if (!user) {
+      setPendingFavorite(favoriteItem);
+      navigate('/login', {
+        state: {
+          from: location.pathname,
+          addFavoriteProduct: favoriteItem
+        }
+      });
+      return;
+    }
 
-    if (existing) {
-      updateQuantity(itemId, quantity);
-    } else {
-      addToCart(cartItem, quantity);
+    try {
+      const userId = user.user_id || user.id;
+
+      if (isFavorite) {
+        await axios.delete(`${API_BASE_URL}/favorites`, {
+          data: {
+            id_user: userId,
+            id_product: itemId
+          }
+        });
+      } else {
+        await axios.post(`${API_BASE_URL}/favorites`, {
+          id_user: userId,
+          id_product: itemId
+        });
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/favorites?user_id=${userId}`);
+      setFavorites(res.data?.data || []);
+    } catch (err) {
+      console.error('Error favorito:', err);
     }
   };
 
@@ -96,10 +210,10 @@ const ProductDetail = () => {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[var(--body)] to-[var(--body2)] py-12 lg:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumbs */}
         <nav className="flex items-center text-sm text-[var(--letra)]/70 mb-8">
           <a href="/" className="hover:text-[var(--segundario)] transition-colors">🍔 Menú</a>
           <span className="mx-2">/</span>
@@ -114,7 +228,6 @@ const ProductDetail = () => {
           className="bg-[var(--body)] shadow-2xl rounded-3xl overflow-hidden border border-[var(--body2)]/50"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-12 p-8 lg:p-12 text-[var(--letra)]">
-            {/* Imagen Principal */}
             <motion.div
               initial={{ scale: 0.9, rotateY: -10 }}
               animate={{ scale: 1, rotateY: 0 }}
@@ -134,7 +247,6 @@ const ProductDetail = () => {
               )}
             </motion.div>
 
-            {/* Info Producto */}
             <div className="lg:pt-8 space-y-6">
               <motion.div
                 initial={{ x: 20, opacity: 0 }}
@@ -158,23 +270,22 @@ const ProductDetail = () => {
                 transition={{ delay: 0.3 }}
                 className="space-y-4"
               >
-                {/* Precio */}
                 <div className="flex items-baseline gap-4">
                   <span className="text-5xl lg:text-6xl font-black text-[var(--segundario)]">
-                    {product.descuento ? `$${product.precio*(1-product.descuento/100)}` : `$${product.precio}`}
+                    {product.descuento ? `$${product.precio * (1 - product.descuento / 100)}` : `$${product.precio}`}
                   </span>
                   {product.descuento && (
-                  <span className="text-2xl text-[var(--letra)]/60 line-through">
-                    {product.precio}
-                  </span>
+                    <span className="text-2xl text-[var(--letra)]/60 line-through">
+                      {product.precio}
+                    </span>
                   )}
                   {product.descuento && (
-                  <span className="bg-green-500 text-[var(--letra)] px-3 py-1 rounded-full text-sm font-bold">
-                    {product.descuento}% OFF
-                  </span>)}
+                    <span className="bg-green-500 text-[var(--letra)] px-3 py-1 rounded-full text-sm font-bold">
+                      {product.descuento}% OFF
+                    </span>
+                  )}
                 </div>
 
-                {/* Cantidad */}
                 <div className="flex items-center gap-4">
                   <label className="text-lg font-semibold text-[var(--letra)]">Cantidad</label>
                   <div className="flex items-center bg-[var(--body2)]/50 backdrop-blur-sm rounded-2xl p-1 border border-[var(--segundario)]/30">
@@ -194,20 +305,17 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {/* Total */}
                 <div className="py-3">
                   <label className="text-lg font-semibold text-[var(--letra)]">
-                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * (product.precio * (1-product.descuento/100))).toFixed(2)}</span>
+                    Total: <span className="text-[var(--segundario)] text-2xl font-black">${(quantity * (product.precio * (1 - (product.descuento || 0) / 100))).toFixed(2)}</span>
                   </label>
                   {product.descuento && (
-                  <span className="text-2xl ml-2 text-[var(--letra)]/60 line-through">
-                    {quantity * product.precio}
-                  </span>
+                    <span className="text-2xl ml-2 text-[var(--letra)]/60 line-through">
+                      {quantity * product.precio}
+                    </span>
                   )}
                 </div>
-                
 
-                {/* Botones Acción */}
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -217,19 +325,24 @@ const ProductDetail = () => {
                   >
                     🛒 Agregar al Carrito
                   </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-[var(--letra)] py-5 px-8 rounded-3xl font-black text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 border border-gray-600/50"
-                  >
-                    ❤️ A Favoritos
-                  </motion.button>
+
+                   <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={`py-5 px-8 rounded-3xl font-black text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 border ${
+          isFavorite
+            ? 'bg-transparent border-red-500 text-red-500'
+            : 'bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-[var(--letra)] border-gray-600/50'
+        }`}
+        onClick={handleFavorite}
+      >
+        {isFavorite ? '❤️ eliminar' : '❤️ A Favoritos'}
+      </motion.button>
                 </div>
               </motion.div>
             </div>
           </div>
 
-          {/* Descripción Detallada */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
