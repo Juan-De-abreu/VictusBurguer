@@ -16,8 +16,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 
 // ✅ IMPORTS Dashboard Páginas
-import Ingresos from "./Pages/Dashboard/Ingresos";
-import Egresos from "./Pages/Dashboard/Egresos";
+
 import Inventario from "./Pages/Dashboard/Inventario";
 import Cuentas from "./Pages/Dashboard/Cuentas";
 import Facturas from "./Pages/Dashboard/Facturas";
@@ -69,10 +68,8 @@ function App() {
                 <Route path="inventario" element={<RoleProtectedRoute allowedRoles={[2,3,4]}><Inventario /></RoleProtectedRoute>} />
                 <Route path="ajustes-de-cuenta" element={<RoleProtectedRoute allowedRoles={[1,2,3,4]}><AjustesPersonal /></RoleProtectedRoute>} />
                 {/* ADMIN SOLO (ID 4) y (ID 3) contador */}
-                <Route path="ingreso" element={<RoleProtectedRoute allowedRoles={[4,3]}><Ingresos /></RoleProtectedRoute>} />
-                <Route path="egreso" element={<RoleProtectedRoute allowedRoles={[4,3]}><Egresos /></RoleProtectedRoute>} />
                 <Route path="cuentas" element={<RoleProtectedRoute allowedRoles={[4]}><Cuentas /></RoleProtectedRoute>} />
-                <Route path="facturas" element={<RoleProtectedRoute allowedRoles={[4]}><Facturas /></RoleProtectedRoute>} />
+                <Route path="facturas" element={<RoleProtectedRoute allowedRoles={[4,3]}><Facturas /></RoleProtectedRoute>} />
                 <Route path="mas-vendido" element={<RoleProtectedRoute allowedRoles={[3,4]}><MasVendido /></RoleProtectedRoute>} />
                 <Route path="menos-vendido" element={<RoleProtectedRoute allowedRoles={[3,4]}><MenosVendido /></RoleProtectedRoute>} />
                 

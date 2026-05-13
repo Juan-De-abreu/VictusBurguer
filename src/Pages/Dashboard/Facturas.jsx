@@ -1,56 +1,882 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { API_BASE_URL } from "../../config/api";
+
 const Facturas = () => {
-  const facturas = [
-    { id: '#FAC001', fecha: '2026-04-24', cliente: 'Juan Pérez', total: 1250.50, estado: 'Pagada' },
-    { id: '#FAC002', fecha: '2026-04-23', cliente: 'María García', total: 890.25, estado: 'Pendiente' },
-  ];
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedDetails, setSelectedDetails] = useState({
+    invoice: null,
+    items: [],
+    loading: false,
+    error: "",
+    extra: null,
+  });
+  const [bcvRate, setBcvRate] = useState(0);
+  const [savingStatusId, setSavingStatusId] = useState(null);
+  const [deletingFixedCostId, setDeletingFixedCostId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+
+  const [filters, setFilters] = useState({
+    orderType: "all",
+    recordTypes: [],
+    currencies: [],
+    paymentStatuses: [],
+    searchField: "",
+    searchValue: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+
+  const formatBs = (value) =>
+    `Bs. ${Number(value || 0).toLocaleString("es-VE", { maximumFractionDigits: 2 })}`;
+
+  const formatMoney = (value, currency = "USD") => {
+    const num = Number(value || 0);
+    return currency === "USD"
+      ? `$${num.toLocaleString("es-VE")}`
+      : `Bs. ${num.toLocaleString("es-VE")}`;
+  };
+
+  const pick = (...values) => {
+    const v = values.find(
+      (x) => x !== undefined && x !== null && String(x).trim() !== ""
+    );
+    return v ?? "N/D";
+  };
+
+  const getRateForRecord = (item) => {
+    const rate = Number(item.exchange_rate || item.bcv_rate || item.rate || 0);
+    return rate > 0 ? rate : bcvRate || 1;
+  };
+
+  const toBolivares = (value, currency, rate) => {
+    const amount = Number(value || 0);
+    return currency === "USD" ? amount * Number(rate || 1) : amount;
+  };
+
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    if (filters.orderType !== "all") params.append("order_type", filters.orderType);
+    if (filters.recordTypes.length) params.append("record_types", filters.recordTypes.join(","));
+    if (filters.currencies.length) params.append("currency", filters.currencies.join(","));
+    if (filters.paymentStatuses.length) params.append("payment_status", filters.paymentStatuses.join(","));
+    if (filters.dateFrom) params.append("date_from", filters.dateFrom);
+    if (filters.dateTo) params.append("date_to", filters.dateTo);
+    if (filters.searchField && filters.searchValue) params.append(filters.searchField, filters.searchValue);
+    return params;
+  };
+
+  const fetchRate = async () => {
+    try {
+      const res = await fetch("https://ve.dolarapi.com/v1/dolares/oficial");
+      const data = await res.json();
+      const rate = Number(data?.promedio || data?.venta || 0);
+      if (rate > 0) setBcvRate(rate);
+    } catch {}
+  };
+
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const params = buildQueryParams();
+      const res = await fetch(`${API_BASE_URL}/dashboard_records?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Error cargando registros");
+      setRecords(Array.isArray(data.data) ? data.data : []);
+    } catch (e) {
+      setError(e.message);
+      setRecords([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const normalizeShopOrder = (item) => {
+    if (!item) return null;
+    return {
+      ...item,
+      user_nombre: pick(item.user_nombre, item.nombre, item.name, item.full_name, item.users?.nombre, item.users?.name, item.user?.nombre, item.user?.name),
+      user_email: pick(item.user_email, item.email, item.users?.email, item.user?.email),
+      user_telefono: pick(item.user_telefono, item.telefono, item.users?.telefono, item.user?.telefono),
+      user_rol: pick(item.user_rol, item.rol, item.users?.rol, item.user?.rol),
+      order_number: pick(item.order_number, item.shop_order_id),
+      payment_status: pick(item.payment_status, item.status, "pendiente"),
+      currency: pick(item.currency, "USD"),
+      total: Number(item.total || item.subtotal || 0),
+    };
+  };
+
+  const fetchDetails = async (record) => {
+    try {
+      setSelectedDetails({ invoice: null, items: [], loading: true, error: "", extra: null });
+
+      if (record.source_entity === "orders_clientes") {
+        const [orderRes, itemsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/orders_clientes?order_id=${record.source_id}`),
+          fetch(`${API_BASE_URL}/order_items_clientes?order_id=${record.source_id}`),
+        ]);
+
+        const orderData = await orderRes.json();
+        const itemsData = await itemsRes.json();
+
+        const invoiceId = orderData?.invoice_id || record.invoice_id;
+        let invoiceData = null;
+
+        if (invoiceId) {
+          const invoiceRes = await fetch(`${API_BASE_URL}/invoices?invoice_id=${invoiceId}`);
+          invoiceData = await invoiceRes.json();
+        }
+
+        setSelectedDetails({
+          invoice: invoiceData || null,
+          items: Array.isArray(itemsData) ? itemsData : [],
+          loading: false,
+          error: "",
+          extra: orderData || null,
+        });
+        return;
+      }
+
+      if (record.source_entity === "payments_personal") {
+        const payRes = await fetch(`${API_BASE_URL}/payments_personal?payment_id=${record.source_id}`);
+        const payData = await payRes.json();
+        setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: payData || null });
+        return;
+      }
+
+      if (record.source_entity === "orders_shop") {
+        const [shopRes, itemsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/orders_shop?shop_order_id=${record.source_id}`),
+          fetch(`${API_BASE_URL}/shop_order_items?shop_order_id=${record.source_id}`),
+        ]);
+
+        const shopRaw = await shopRes.json();
+        const itemsData = await itemsRes.json();
+        const shopData = normalizeShopOrder(Array.isArray(shopRaw) ? shopRaw[0] : shopRaw);
+
+        setSelectedDetails({
+          invoice: shopData?.invoice || null,
+          items: Array.isArray(itemsData) ? itemsData : [],
+          loading: false,
+          error: "",
+          extra: shopData || null,
+        });
+        return;
+      }
+
+      if (record.source_entity === "fixed_costs") {
+        const costRes = await fetch(`${API_BASE_URL}/fixed_costs?cost_id=${record.source_id}`);
+        const costData = await costRes.json();
+        setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: costData || null });
+        return;
+      }
+
+      setSelectedDetails({ invoice: null, items: [], loading: false, error: "Sin detalle", extra: null });
+    } catch (e) {
+      setSelectedDetails({ invoice: null, items: [], loading: false, error: e.message, extra: null });
+    }
+  };
+
+  const updateOriginStatus = async (record, newStatus) => {
+    try {
+      setSavingStatusId(record.source_id);
+
+      const endpoint =
+        record.source_entity === "orders_clientes"
+          ? "orders_clientes"
+          : record.source_entity === "payments_personal"
+          ? "payments_personal"
+          : record.source_entity === "orders_shop"
+          ? "orders_shop"
+          : record.source_entity === "fixed_costs"
+          ? "fixed_costs"
+          : null;
+
+      if (!endpoint) return;
+
+      const key =
+        endpoint === "orders_clientes"
+          ? "order_id"
+          : endpoint === "payments_personal"
+          ? "payment_id"
+          : endpoint === "orders_shop"
+          ? "shop_order_id"
+          : "cost_id";
+
+      const body = new URLSearchParams();
+      body.append(key, record.source_id);
+      body.append("payment_status", newStatus);
+
+      const res = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "No se pudo actualizar");
+
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.source_entity === record.source_entity && r.source_id === record.source_id
+            ? {
+                ...r,
+                payment_status: newStatus,
+                status: newStatus,
+                invoice_status: newStatus,
+                paid_date: data?.paid_date || r.paid_date,
+                due_date: data?.next_due_date || r.due_date,
+              }
+            : r
+        )
+      );
+
+      setSelectedRecord((prev) =>
+        prev && prev.source_entity === record.source_entity && prev.source_id === record.source_id
+          ? {
+              ...prev,
+              payment_status: newStatus,
+              status: newStatus,
+              invoice_status: newStatus,
+              paid_date: data?.paid_date || prev.paid_date,
+              due_date: data?.next_due_date || prev.due_date,
+            }
+          : prev
+      );
+
+      if (record.source_entity === "fixed_costs") {
+        await fetchDetails(record);
+      }
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setSavingStatusId(null);
+    }
+  };
+
+  const updateFixedCost = async (costId, payload) => {
+    const form = new URLSearchParams();
+    form.append("cost_id", costId);
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) form.append(key, value);
+    });
+
+    const res = await fetch(`${API_BASE_URL}/fixed_costs`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || "No se pudo actualizar");
+    return data;
+  };
+
+  const deleteFixedCost = async (costId) => {
+    const form = new URLSearchParams();
+    form.append("cost_id", costId);
+
+    const res = await fetch(`${API_BASE_URL}/fixed_costs`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || "No se pudo eliminar");
+    return data;
+  };
+
+  useEffect(() => {
+    fetchRate();
+  }, []);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [
+    filters.orderType,
+    filters.recordTypes,
+    filters.currencies,
+    filters.paymentStatuses,
+    filters.searchField,
+    filters.searchValue,
+    filters.dateFrom,
+    filters.dateTo,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, rowsPerPage]);
+
+  const totals = useMemo(() => {
+    const validInvoices = records.filter((r) => (r.status || r.invoice_status || "").toLowerCase() === "pagada");
+    const income = validInvoices
+      .filter((r) => r.source_type === "income")
+      .reduce((sum, r) => sum + toBolivares(r.total || r.amount || 0, r.currency || "USD", getRateForRecord(r)), 0);
+
+    const expense = validInvoices
+      .filter((r) => r.source_type === "expense")
+      .reduce((sum, r) => sum + toBolivares(r.total || r.amount || 0, r.currency || "USD", getRateForRecord(r)), 0);
+
+    return { income, expense, net: income - expense };
+  }, [records, bcvRate]);
+
+  const visibleFilterOptions = useMemo(() => {
+    const active = [];
+    if (filters.orderType !== "all") active.push({ key: "orderType", value: filters.orderType, label: filters.orderType });
+    filters.recordTypes.forEach((t) => {
+      const label =
+        t === "orders" ? "Órdenes" : t === "inventory" ? "Inventario" : t === "fixed_costs" ? "Costos fijos" : "Empleados";
+      active.push({ key: "recordTypes", value: t, label });
+    });
+    filters.currencies.forEach((c) => active.push({ key: "currencies", value: c, label: c }));
+    filters.paymentStatuses.forEach((p) => active.push({ key: "paymentStatuses", value: p, label: p }));
+    if (filters.searchField && filters.searchValue) active.push({ key: "search", value: `${filters.searchField}:${filters.searchValue}`, label: `${filters.searchField}: ${filters.searchValue}` });
+    if (filters.dateFrom || filters.dateTo) active.push({ key: "date", value: `${filters.dateFrom || "..."} - ${filters.dateTo || "..."}`, label: `${filters.dateFrom || "..."} - ${filters.dateTo || "..."}` });
+    return active;
+  }, [filters]);
+
+  const toggleCurrency = (currency) => {
+    setFilters((prev) => ({
+      ...prev,
+      currencies: prev.currencies.includes(currency) ? prev.currencies.filter((x) => x !== currency) : [...prev.currencies, currency],
+    }));
+  };
+
+  const togglePaymentStatus = (status) => {
+    setFilters((prev) => ({
+      ...prev,
+      paymentStatuses: prev.paymentStatuses.includes(status) ? prev.paymentStatuses.filter((x) => x !== status) : [...prev.paymentStatuses, status],
+    }));
+  };
+
+  const clearOne = (key, value) => {
+    setFilters((prev) => {
+      if (key === "orderType") return { ...prev, orderType: "all" };
+      if (key === "recordTypes") return { ...prev, recordTypes: prev.recordTypes.filter((x) => x !== value) };
+      if (key === "currencies") return { ...prev, currencies: prev.currencies.filter((x) => x !== value) };
+      if (key === "paymentStatuses") return { ...prev, paymentStatuses: prev.paymentStatuses.filter((x) => x !== value) };
+      if (key === "search") return { ...prev, searchField: "", searchValue: "" };
+      if (key === "date") return { ...prev, dateFrom: "", dateTo: "" };
+      return prev;
+    });
+  };
+
+  const clearAll = () => {
+    setFilters({
+      orderType: "all",
+      recordTypes: [],
+      currencies: [],
+      paymentStatuses: [],
+      searchField: "",
+      searchValue: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+  };
+
+  const filteredRecords = useMemo(() => {
+    return records.filter((item) => {
+      const entity = item.source_entity || "";
+
+      const matchesOrderType =
+        filters.orderType === "all" ||
+        (filters.orderType === "income" && item.source_type === "income") ||
+        (filters.orderType === "expense" && item.source_type === "expense");
+
+      const matchesRecordType =
+        filters.recordTypes.length === 0 ||
+        filters.recordTypes.some((type) => {
+          if (type === "empleados") return entity === "payments_personal";
+          if (type === "fixed_costs") return entity === "fixed_costs";
+          if (type === "orders") return entity === "orders_clientes";
+          if (type === "inventory") return entity === "orders_shop";
+          return false;
+        });
+
+      const matchesCurrency =
+        filters.currencies.length === 0 ||
+        filters.currencies.includes((item.currency || "USD").toUpperCase());
+
+      const statusValue = (item.payment_status || item.status || item.invoice_status || "").toLowerCase();
+      const matchesPaymentStatus =
+        filters.paymentStatuses.length === 0 || filters.paymentStatuses.includes(statusValue);
+
+      const recordDate = (item.record_date || item.issue_date || item.created_at || item.paid_at || item.due_date || "").slice(0, 10);
+      const matchesDateFrom = !filters.dateFrom || recordDate >= filters.dateFrom;
+      const matchesDateTo = !filters.dateTo || recordDate <= filters.dateTo;
+
+      const fieldValue = (() => {
+        if (!filters.searchField) return "";
+        if (filters.searchField === "customer_name") return item.customer_name || item.client_name || item.order_name || "";
+        if (filters.searchField === "customer_cedula") return item.customer_cedula || item.cedula || "";
+        if (filters.searchField === "invoice_number") return item.invoice_number || "";
+        if (filters.searchField === "order_number") return item.order_number || "";
+        if (filters.searchField === "employee_name") return item.employee_name || "";
+        if (filters.searchField === "cost_name") return item.cost_name || "";
+        return "";
+      })();
+
+      const matchesSearch =
+        !filters.searchField ||
+        !filters.searchValue ||
+        String(fieldValue).toLowerCase().includes(filters.searchValue.toLowerCase());
+
+      return matchesOrderType && matchesRecordType && matchesCurrency && matchesPaymentStatus && matchesDateFrom && matchesDateTo && matchesSearch;
+    });
+  }, [records, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / rowsPerPage));
+
+  const paginatedRecords = useMemo(() => {
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * rowsPerPage;
+    return filteredRecords.slice(start, start + rowsPerPage);
+  }, [filteredRecords, currentPage, rowsPerPage, totalPages]);
+
+  const getSourceLabel = (item) => {
+    if (item.source_entity === "orders_clientes") return "Orden";
+    if (item.source_entity === "payments_personal") return "Empleado";
+    if (item.source_entity === "orders_shop") return "Inventario";
+    if (item.source_entity === "fixed_costs") return "Costo fijo";
+    return item.source_entity || "N/D";
+  };
+
+  const getRowColor = (item) => {
+    if (item.source_entity === "orders_clientes") return "border-l-4 border-green-500";
+    if (item.source_entity === "payments_personal") return "border-l-4 border-amber-500";
+    if (item.source_entity === "orders_shop") return "border-l-4 border-purple-500";
+    if (item.source_entity === "fixed_costs") return "border-l-4 border-orange-500";
+    return "";
+  };
+
+  const openDetail = async (item) => {
+    setSelectedRecord(item);
+    await fetchDetails(item);
+  };
+
+  const toggleRecordType = (type) => {
+    setFilters((prev) => ({
+      ...prev,
+      recordTypes: prev.recordTypes.includes(type) ? prev.recordTypes.filter((x) => x !== type) : [...prev.recordTypes, type],
+    }));
+  };
+
+  const getRowClientName = (item) => {
+    if (item.source_entity === "orders_clientes") return item.customer_name || item.client_name || item.order_name || "N/D";
+    if (item.source_entity === "payments_personal") return item.employee_name || "N/D";
+    if (item.source_entity === "orders_shop") return item.user_nombre || item.nombre || item.name || item.supplier_name || "N/D";
+    if (item.source_entity === "fixed_costs") return item.cost_name || "N/D";
+    return item.customer_name || item.employee_name || item.cost_name || "N/D";
+  };
+
+  const getRowCedula = (item) => {
+    if (item.source_entity === "orders_clientes") return item.customer_cedula || item.cedula || "N/D";
+    if (item.source_entity === "payments_personal") return item.employee_cedula || item.cedula || "N/D";
+    return item.customer_cedula || item.employee_cedula || item.cedula || "N/D";
+  };
+
+  const getModalTitle = () => {
+    const e = selectedDetails.extra || {};
+    if (selectedRecord?.source_entity === "orders_shop") {
+      return pick(e.user_nombre, e.nombre, e.name, selectedRecord?.reference, selectedRecord?.order_number);
+    }
+    return pick(
+      selectedRecord?.reference,
+      selectedRecord?.invoice_number,
+      selectedRecord?.order_number,
+      selectedRecord?.cost_name,
+      e.invoice_number
+    );
+  };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-6">📋 Facturación</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-3xl border border-green-200">
-          <h3 className="text-2xl font-bold mb-4 text-green-900">✅ Pagadas</h3>
-          <p className="text-4xl font-black text-green-600">$2,140.75</p>
+    <div className="space-y-8 w-full max-w-full overflow-x-hidden">
+      <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">📋 Facturación y Movimientos</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+          <p className="text-sm text-gray-300">Ingresos</p>
+          <p className="text-3xl font-black text-green-400">{formatBs(totals.income)}</p>
         </div>
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-3xl border border-orange-200">
-          <h3 className="text-2xl font-bold mb-4 text-orange-900">⏳ Pendientes</h3>
-          <p className="text-4xl font-black text-orange-600">$890.25</p>
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+          <p className="text-sm text-gray-300">Egresos</p>
+          <p className="text-3xl font-black text-red-400">{formatBs(totals.expense)}</p>
+        </div>
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+          <p className="text-sm text-gray-300">Total neto</p>
+          <p className={`text-3xl font-black ${totals.net >= 0 ? "text-green-400" : "text-red-400"}`}>{formatBs(totals.net)}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gradient-to-r from-indigo-50 to-purple-50">
-            <tr>
-              <th className="p-6 text-left font-bold text-gray-800">Factura</th>
-              <th className="p-6 text-left font-bold text-gray-800">Cliente</th>
-              <th className="p-6 text-left font-bold text-gray-800">Fecha</th>
-              <th className="p-6 text-right font-bold text-gray-800">Total</th>
-              <th className="p-6 text-center font-bold text-gray-800">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facturas.map((factura, i) => (
-              <tr key={i} className="border-t hover:bg-indigo-50 transition">
-                <td className="p-6 font-mono text-lg">{factura.id}</td>
-                <td className="p-6">{factura.cliente}</td>
-                <td className="p-6">{factura.fecha}</td>
-                <td className="p-6 text-right font-bold text-indigo-900">${factura.total.toLocaleString()}</td>
-                <td className="p-6 text-center">
-                  <span className={`px-4 py-2 rounded-full text-sm font-bold ${
-                    factura.estado === 'Pagada' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {factura.estado}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex justify-between bg-[var(--body)] p-4 rounded-3xl shadow-lg flex-wrap gap-4">
+        <div className="flex flex-wrap gap-3">
+          {[
+            { key: "all", label: "Ambos" },
+            { key: "income", label: "Ingresos" },
+            { key: "expense", label: "Egresos" },
+          ].map((btn) => (
+            <button
+              key={btn.key}
+              onClick={() => setFilters((prev) => ({ ...prev, orderType: btn.key }))}
+              className={`px-4 py-3 rounded-2xl font-bold transition text-sm sm:text-base ${
+                filters.orderType === btn.key ? "bg-red-800 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {btn.label}
+            </button>
+          ))}
+          <button
+            onClick={clearAll}
+            className="px-4 py-3 rounded-2xl font-bold bg-red-100 text-red-700 hover:bg-red-200 transition text-sm sm:text-base"
+          >
+            Limpiar
+          </button>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap text-white font-semibold pr-4">
+          <span>BCV USD/VES:</span>
+          <span>{bcvRate}</span>
+        </div>
       </div>
+
+      {visibleFilterOptions.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          {visibleFilterOptions.map((item, idx) => (
+            <span key={idx} className="flex items-center gap-2 bg-red-800/90 shadow-md shadow-black px-4 py-2 rounded-full text-sm font-semibold text-white max-w-full">
+              <span className="truncate">{item.label}</span>
+              <button onClick={() => clearOne(item.key, item.value)} className="text-red-300 font-black">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="bg-[var(--body)] p-5 sm:p-6 rounded-3xl shadow-xl space-y-5 max-w-full overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <select
+            value={filters.searchField}
+            onChange={(e) => setFilters((prev) => ({ ...prev, searchField: e.target.value, searchValue: "" }))}
+            className="px-4 py-3 rounded-2xl border border-gray-300 bg-[var(--body)] text-white w-full"
+          >
+            <option value="">Elegir filtro de búsqueda</option>
+            <option value="customer_name">Nombre</option>
+            <option value="customer_cedula">Cédula</option>
+            <option value="invoice_number">Número de factura</option>
+            <option value="order_number">Número de orden</option>
+            <option value="employee_name">Empleado</option>
+            <option value="cost_name">Costo fijo</option>
+          </select>
+
+          {filters.searchField && (
+            <input
+              type="text"
+              value={filters.searchValue}
+              onChange={(e) => setFilters((prev) => ({ ...prev, searchValue: e.target.value }))}
+              placeholder="Escribe para buscar"
+              className="px-4 py-3 rounded-2xl border border-gray-300 w-full"
+            />
+          )}
+
+          <div className="grid grid-cols-2 gap-3 md:col-span-2">
+            <input type="date" value={filters.dateFrom} onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full" />
+            <input type="date" value={filters.dateTo} onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button onClick={() => toggleCurrency("USD")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("USD") ? "bg-green-700 text-white" : "bg-[var(--body)]"}`}>USD</button>
+          <button onClick={() => toggleCurrency("VES")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("VES") ? "bg-red-800 text-white" : "bg-[var(--body)]"}`}>VES</button>
+
+          <button onClick={() => togglePaymentStatus("pagada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pagada") ? "bg-green-700 text-white" : "bg-[var(--body)]"}`}>Pagada</button>
+          <button onClick={() => togglePaymentStatus("pendiente")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pendiente") ? "bg-amber-700 text-white" : "bg-[var(--body)]"}`}>Pendiente</button>
+          <button onClick={() => togglePaymentStatus("anulada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("anulada") ? "bg-gray-700 text-white" : "bg-[var(--body)]"}`}>Anulada</button>
+
+          <button onClick={() => toggleRecordType("empleados")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("empleados") ? "bg-blue-700 text-white" : "bg-[var(--body)]"}`}>Empleados</button>
+          <button onClick={() => toggleRecordType("fixed_costs")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("fixed_costs") ? "bg-orange-700 text-white" : "bg-[var(--body)]"}`}>Costos fijos</button>
+          <button onClick={() => toggleRecordType("orders")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("orders") ? "bg-red-700 text-white" : "bg-[var(--body)]"}`}>Órdenes</button>
+          <button onClick={() => toggleRecordType("inventory")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("inventory") ? "bg-purple-700 text-white" : "bg-[var(--body)]"}`}>Inventario</button>
+        </div>
+      </div>
+
+      <div className="bg-[var(--body)] rounded-3xl shadow-2xl overflow-hidden max-w-full">
+        {loading ? (
+          <div className="p-8 text-center text-white">Cargando registros...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-600">{error}</div>
+        ) : filteredRecords.length === 0 ? (
+          <div className="p-8 text-center text-white">No hay registros</div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px]">
+                <thead className="bg-[var(--body)] text-white border-b border-white/20 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 text-left font-bold">Tipo</th>
+                    <th className="p-4 text-left font-bold">Referencia</th>
+                    <th className="p-4 text-left font-bold">Nombre / CI</th>
+                    <th className="p-4 text-left font-bold">Fecha</th>
+                    <th className="p-4 text-left font-bold">Moneda</th>
+                    <th className="p-4 text-right font-bold">Total</th>
+                    <th className="p-4 text-center font-bold">Estado</th>
+                    <th className="p-4 text-center font-bold">Ver</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedRecords.map((item) => {
+                    const editable = item.source_entity === "orders_clientes" || item.source_entity === "payments_personal";
+                    const rowStatus = item.payment_status || item.status || item.invoice_status || "pendiente";
+                    const amount = item.total || item.amount || 0;
+                    const rate = getRateForRecord(item);
+                    const amountBs = toBolivares(amount, item.currency || "USD", rate);
+
+                    return (
+                      <tr key={`${item.source_entity}-${item.source_id}`} className={`border-t hover:bg-[var(--body2)]/95 bg-[var(--body)] transition text-white ${getRowColor(item)}`}>
+                        <td className="p-4 text-sm sm:text-base">{getSourceLabel(item)}</td>
+                        <td className="p-4 font-mono text-sm sm:text-base">{item.reference || item.invoice_number || item.order_number || item.cost_name || "N/D"}</td>
+                        <td className="p-4 text-sm sm:text-base">
+                          <div className="font-semibold">{getRowClientName(item)}</div>
+                          <div className="text-xs text-gray-400">CI: {getRowCedula(item)}</div>
+                        </td>
+                        <td className="p-4 text-sm sm:text-base">{(item.record_date || item.issue_date || item.created_at || item.paid_at || item.due_date || "").slice(0, 10)}</td>
+                        <td className="p-4 text-sm sm:text-base">{item.currency || "USD"}</td>
+                        <td className="p-4 text-right font-bold text-sm sm:text-base">
+                          {formatMoney(amount, item.currency || "USD")}
+                          <div className="text-xs text-gray-400">{formatBs(amountBs)}</div>
+                        </td>
+                        <td className="p-4 text-center">
+                          {editable ? (
+                            <select value={rowStatus} onChange={(e) => updateOriginStatus(item, e.target.value)} disabled={savingStatusId === item.source_id} className="px-2 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white text-sm w-full max-w-[130px]">
+                              <option value="pendiente">pendiente</option>
+                              <option value="pagada">pagada</option>
+                              <option value="rechazada">rechazada</option>
+                              <option value="anulada">anulada</option>
+                            </select>
+                          ) : (
+                            <span className="inline-flex px-3 py-2 rounded-full text-xs font-bold bg-white/10">
+                              {item.status || item.invoice_status || item.payment_status || "emitida"}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
+                          <button onClick={() => openDetail(item)} className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 text-sm">
+                            Ver
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border-t border-white/10 text-white">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-300">Filas por página:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    const value = Math.max(1, Number(e.target.value || 1));
+                    setRowsPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-24 px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white"
+                />
+                <span className="text-sm text-gray-400">Total: {filteredRecords.length} registros</span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Inicio</button>
+                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Anterior</button>
+                <span className="px-3 py-2 text-sm">{currentPage} / {totalPages}</span>
+                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Final</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4">
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[var(--body)] text-white shadow-2xl border border-white/10">
+            <div className="flex items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-white/10">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black">Detalle del registro</h2>
+                <p className="text-sm text-gray-300 break-words">{getModalTitle()}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedRecord(null);
+                  setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: null });
+                }}
+                className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 shrink-0"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-6">
+              {selectedDetails.loading ? (
+                <div className="text-center text-white py-10">Cargando detalle...</div>
+              ) : selectedDetails.error ? (
+                <div className="text-center text-red-400 py-10">{selectedDetails.error}</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-2xl bg-black/20 p-5">
+                      <p className="text-sm text-gray-300 mb-2">Información principal</p>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-gray-400">Tipo:</span> {selectedRecord.source_entity || "N/D"}</p>
+                        <p><span className="text-gray-400">Referencia:</span> {pick(selectedRecord.reference, selectedRecord.invoice_number, selectedRecord.order_number, selectedRecord.cost_name)}</p>
+                        <p><span className="text-gray-400">Moneda:</span> {selectedRecord.currency || "USD"}</p>
+                        <p><span className="text-gray-400">Estado:</span> {selectedRecord.status || selectedRecord.invoice_status || selectedRecord.payment_status || "pendiente"}</p>
+                        <p><span className="text-gray-400">Total:</span> {formatBs(toBolivares(selectedRecord.total || selectedRecord.amount || 0, selectedRecord.currency || "USD", getRateForRecord(selectedRecord)))}</p>
+
+                        {(selectedRecord.source_entity === "orders_clientes" || selectedRecord.source_entity === "payments_personal") && (
+                          <div className="pt-3">
+                            <p className="text-gray-400 mb-2">Actualizar estado del origen</p>
+                            <select
+                              value={selectedRecord.payment_status || selectedRecord.status || "pendiente"}
+                              onChange={(e) => updateOriginStatus(selectedRecord, e.target.value)}
+                              disabled={savingStatusId === selectedRecord.source_id}
+                              className="px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white w-full"
+                            >
+                              <option value="pendiente">pendiente</option>
+                              <option value="pagada">pagada</option>
+                              <option value="rechazada">rechazada</option>
+                              <option value="anulada">anulada</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl bg-black/20 p-5">
+                      <p className="text-sm text-gray-300 mb-2">Factura vinculada</p>
+                      {selectedDetails.invoice ? (
+                        <div className="space-y-2 text-sm">
+                          <p><span className="text-gray-400">Número:</span> {selectedDetails.invoice.invoice_number || "N/D"}</p>
+                          <p><span className="text-gray-400">Control:</span> {selectedDetails.invoice.control_number || "N/D"}</p>
+                          <p><span className="text-gray-400">Estado:</span> {selectedDetails.invoice.status || "emitida"}</p>
+                          <p><span className="text-gray-400">Subtotal:</span> {formatMoney(selectedDetails.invoice.subtotal || 0, selectedDetails.invoice.currency || "USD")}</p>
+                          <p><span className="text-gray-400">Total:</span> {formatMoney(selectedDetails.invoice.total || 0, selectedDetails.invoice.currency || "USD")}</p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm">No hay factura vinculada.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedRecord.source_entity === "orders_shop" && (
+                    <div className="rounded-2xl bg-black/20 p-5">
+                      <p className="text-sm text-gray-300 mb-2">Orden inventario</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <p><span className="text-gray-400">Usuario:</span> {pick(selectedDetails.extra?.user_nombre, selectedDetails.extra?.nombre, selectedDetails.extra?.name)}</p>
+                        <p><span className="text-gray-400">Correo:</span> {pick(selectedDetails.extra?.user_email, selectedDetails.extra?.email)}</p>
+                        <p><span className="text-gray-400">Teléfono:</span> {pick(selectedDetails.extra?.user_telefono, selectedDetails.extra?.telefono)}</p>
+                        <p><span className="text-gray-400">Rol:</span> {pick(selectedDetails.extra?.user_rol, selectedDetails.extra?.rol)}</p>
+                        <p><span className="text-gray-400">Orden:</span> {pick(selectedDetails.extra?.order_number, selectedDetails.extra?.shop_order_id)}</p>
+                        <p><span className="text-gray-400">Estado:</span> {pick(selectedDetails.extra?.payment_status, selectedDetails.extra?.status, "pendiente")}</p>
+                        <p><span className="text-gray-400">Fecha:</span> {pick(selectedDetails.extra?.updated_at, selectedDetails.extra?.created_at).toString().slice(0, 10)}</p>
+                        <p><span className="text-gray-400">Total:</span> {formatMoney(selectedDetails.extra?.total || 0, selectedDetails.extra?.currency || "USD")}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRecord.source_entity === "fixed_costs" && (
+                    <div className="rounded-2xl bg-black/20 p-5 space-y-5">
+                      <p className="text-sm text-gray-300 mb-2">Costo fijo recurrente</p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <p><span className="text-gray-400">Nombre:</span> {selectedDetails.extra?.cost_name || "N/D"}</p>
+                        <p><span className="text-gray-400">Categoría:</span> {selectedDetails.extra?.cost_category || "N/D"}</p>
+                        <p><span className="text-gray-400">Proveedor:</span> {selectedDetails.extra?.supplier_name || "N/D"}</p>
+                        <p><span className="text-gray-400">Factura:</span> {selectedDetails.extra?.invoice_number || "N/D"}</p>
+                        <p><span className="text-gray-400">Estado:</span> {selectedDetails.extra?.payment_status || "N/D"}</p>
+                        <p><span className="text-gray-400">Vencimiento:</span> {selectedDetails.extra?.due_date || "N/D"}</p>
+                        <p><span className="text-gray-400">Pagado:</span> {selectedDetails.extra?.paid_date || "N/D"}</p>
+                        <p><span className="text-gray-400">Monto:</span> {formatMoney(selectedDetails.extra?.amount || 0, selectedDetails.extra?.currency || "USD")}</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm text-gray-300 mb-2 block">Cambiar estado</label>
+                          <select
+                            value={selectedDetails.extra?.payment_status || "pendiente"}
+                            onChange={async (e) => {
+                              try {
+                                setSavingStatusId(selectedRecord.source_id);
+                                await updateFixedCost(selectedRecord.source_id, { payment_status: e.target.value });
+                                await fetchRecords();
+                                await fetchDetails(selectedRecord);
+                              } catch (err) {
+                                alert(err.message);
+                              } finally {
+                                setSavingStatusId(null);
+                              }
+                            }}
+                            disabled={savingStatusId === selectedRecord.source_id}
+                            className="px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white w-full"
+                          >
+                            <option value="pendiente">pendiente</option>
+                            <option value="pagada">pagada</option>
+                            <option value="anulada">anulada</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-end">
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm("¿Seguro que deseas borrar este costo fijo?")) return;
+                              try {
+                                setDeletingFixedCostId(selectedRecord.source_id);
+                                await deleteFixedCost(selectedRecord.source_id);
+                                setSelectedRecord(null);
+                                setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: null });
+                                await fetchRecords();
+                              } catch (err) {
+                                alert(err.message);
+                              } finally {
+                                setDeletingFixedCostId(null);
+                              }
+                            }}
+                            disabled={deletingFixedCostId === selectedRecord.source_id}
+                            className="w-full px-4 py-3 rounded-xl bg-red-700 text-white font-bold hover:bg-red-800 disabled:opacity-60"
+                          >
+                            {deletingFixedCostId === selectedRecord.source_id ? "Borrando..." : "Borrar costo fijo"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRecord.source_entity === "payments_personal" && (
+                    <div className="rounded-2xl bg-black/20 p-5">
+                      <p className="text-sm text-gray-300 mb-2">Datos del pago</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <p><span className="text-gray-400">Empleado:</span> {selectedDetails.extra?.employee_name || "N/D"}</p>
+                        <p><span className="text-gray-400">Cédula:</span> {selectedDetails.extra?.employee_cedula || "N/D"}</p>
+                        <p><span className="text-gray-400">Rol:</span> {selectedDetails.extra?.role_name || "N/D"}</p>
+                        <p><span className="text-gray-400">Tipo:</span> {selectedDetails.extra?.payment_type || "N/D"}</p>
+                        <p><span className="text-gray-400">Método:</span> {selectedDetails.extra?.payment_method || "N/D"}</p>
+                        <p><span className="text-gray-400">Fecha pago:</span> {selectedDetails.extra?.paid_at || "N/D"}</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

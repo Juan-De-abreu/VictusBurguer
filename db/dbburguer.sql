@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 27-04-2026 a las 02:24:51
+-- Tiempo de generación: 10-05-2026 a las 21:23:48
 -- Versión del servidor: 9.1.0
 -- Versión de PHP: 8.3.14
 
@@ -132,35 +132,56 @@ INSERT INTO `favorites` (`id`, `id_product`, `id_user`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `invoices`
+--
+
+DROP TABLE IF EXISTS `invoices`;
+CREATE TABLE IF NOT EXISTS `invoices` (
+  `invoice_id` int NOT NULL AUTO_INCREMENT,
+  `invoice_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `control_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `order_id` int NOT NULL,
+  `customer_name` varchar(120) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `customer_cedula` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `customer_email` varchar(120) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `customer_phone` varchar(30) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `exchange_rate` decimal(12,6) DEFAULT NULL,
+  `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `tax_total` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `total` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `issue_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('emitida','pagada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'emitida',
+  `pdf_url` varchar(255) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `image_url` varchar(255) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  PRIMARY KEY (`invoice_id`),
+  UNIQUE KEY `invoice_number` (`invoice_number`),
+  UNIQUE KEY `control_number` (`control_number`),
+  KEY `order_id` (`order_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `orders`
 --
 
 DROP TABLE IF EXISTS `orders`;
 CREATE TABLE IF NOT EXISTS `orders` (
   `order_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL,
-  `address_id` int DEFAULT NULL,
-  `driver_id` int DEFAULT NULL,
-  `total` decimal(10,2) NOT NULL,
-  `metodo_pago` varchar(50) DEFAULT NULL,
-  `status` enum('pendiente','preparando','en camino','entregado','cancelado') DEFAULT 'pendiente',
+  `user_id` int NOT NULL,
+  `invoice_id` int DEFAULT NULL,
+  `order_type` enum('ingreso','egreso') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'ingreso',
+  `payment_status` enum('pendiente','pagada','rechazada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `tax_total` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `discount_total` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`order_id`),
-  KEY `user_id` (`user_id`),
-  KEY `address_id` (`address_id`),
-  KEY `driver_id` (`driver_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
-
---
--- Volcado de datos para la tabla `orders`
---
-
-INSERT INTO `orders` (`order_id`, `user_id`, `address_id`, `driver_id`, `total`, `metodo_pago`, `status`, `created_at`) VALUES
-(1, 1, 1, 1, 15.50, 'Pago Móvil', 'entregado', '2026-01-20 14:26:14'),
-(2, 2, 2, 2, 22.50, 'Efectivo', 'en camino', '2026-01-20 14:26:14'),
-(3, 3, 3, NULL, 9.50, 'Zelle', 'preparando', '2026-01-20 14:26:14'),
-(4, 5, 5, NULL, 14.00, 'Tarjeta de Débito', 'pendiente', '2026-01-20 14:26:14'),
-(5, 9, 9, NULL, 4.00, 'Pago Móvil', 'cancelado', '2026-01-20 14:26:14');
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 -- --------------------------------------------------------
 
@@ -171,27 +192,15 @@ INSERT INTO `orders` (`order_id`, `user_id`, `address_id`, `driver_id`, `total`,
 DROP TABLE IF EXISTS `order_items`;
 CREATE TABLE IF NOT EXISTS `order_items` (
   `order_item_id` int NOT NULL AUTO_INCREMENT,
-  `order_id` int DEFAULT NULL,
-  `product_id` int DEFAULT NULL,
-  `cantidad` int NOT NULL,
-  `precio_unitario` decimal(10,2) NOT NULL,
+  `order_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `product_name` varchar(150) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `quantity` int NOT NULL,
+  `unit_price` decimal(12,2) NOT NULL,
+  `line_total` decimal(12,2) NOT NULL,
   PRIMARY KEY (`order_item_id`),
-  KEY `order_id` (`order_id`),
-  KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3;
-
---
--- Volcado de datos para la tabla `order_items`
---
-
-INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `cantidad`, `precio_unitario`) VALUES
-(1, 1, 6, 1, 10.00),
-(2, 1, 1, 1, 5.50),
-(3, 2, 7, 1, 14.00),
-(4, 2, 4, 1, 8.50),
-(5, 3, 9, 1, 9.50),
-(6, 4, 7, 1, 14.00),
-(7, 5, 10, 1, 4.00);
+  KEY `order_id` (`order_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 -- --------------------------------------------------------
 
@@ -275,21 +284,6 @@ INSERT INTO `users` (`user_id`, `nombre`, `email`, `password`, `telefono`, `crea
 --
 ALTER TABLE `addresses`
   ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
-
---
--- Filtros para la tabla `orders`
---
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`address_id`),
-  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`driver_id`);
-
---
--- Filtros para la tabla `order_items`
---
-ALTER TABLE `order_items`
-  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
 
 --
 -- Filtros para la tabla `products`

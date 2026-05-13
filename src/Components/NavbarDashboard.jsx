@@ -26,13 +26,11 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
     3: { 
       title: "💰 Contador", 
       items: [
-        { path: '/dashboard/ingreso', label: ' Ingreso', icon: '📈' },
-        { path: '/dashboard/egreso', label: ' Egreso', icon: '📉' },
+        { path: '/dashboard/facturas', label: ' Facturas', icon: '📋' },
         { path: '/dashboard/inventario', label: ' Inventario', icon: '📦' },
         { path: '/dashboard/inventario-critico', label: ' Crítico', icon: '⚠️' },
         { path: '/dashboard/mas-vendido', label: ' Más Vendido', icon: '⭐' },
         { path: '/dashboard/menos-vendido', label: ' Menos Vendido', icon: '📉' },
-        { path: '/dashboard/facturas', label: ' Facturas', icon: '📋' },
         { path: '/dashboard/menu-ajustes', label: ' Ajustes Menú', icon: '🍔' }
       ]
     },
@@ -40,8 +38,6 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
       title: "👑 Admin", 
       items: [
         { path: '/dashboard/facturas', label: ' Facturas', icon: '📋' },
-        { path: '/dashboard/ingreso', label: ' Ingreso', icon: '📈' },
-        { path: '/dashboard/egreso', label: ' Egreso', icon: '📉' },
         { path: '/dashboard/cuentas', label: ' Cuentas', icon: '👥' },
         { path: '/dashboard/mas-vendido', label: ' Más Vendido', icon: '⭐' },
         { path: '/dashboard/menos-vendido', label: ' Menos Vendido', icon: '📉' },
