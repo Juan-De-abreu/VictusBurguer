@@ -1,45 +1,94 @@
-const MasVendido = () => {
-  const topVendido = [
-    { nombre: 'Big Burger Especial', ventas: 245, ingresos: 7345.00 },
-    { nombre: 'Papas Deluxe', ventas: 189, ingresos: 945.00 },
-    { nombre: 'Combo Familiar', ventas: 156, ingresos: 6240.00 },
-  ];
+import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "../../config/api";
+
+const TopProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(`${API_BASE_URL}/top_products`);
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Error cargando productos");
+        }
+
+        setProducts(Array.isArray(data.data) ? data.data : []);
+      } catch (e) {
+        setError(e.message);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopProducts();
+  }, []);
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-6">⭐ Más Vendidos</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* 📊 Gráfico */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-3xl border border-yellow-200 h-96 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-6xl mb-4">📈</div>
-            <p className="text-2xl text-gray-600">Gráfico Top Vendidos</p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <h1 className="text-3xl sm:text-5xl font-black text-white">
+        Productos más vendidos
+      </h1>
 
-        {/* 🏆 Ranking */}
-        <div className="space-y-4">
-          {topVendido.map((producto, i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl shadow-xl border border-yellow-200 hover:shadow-2xl transition-all">
-              <div className="flex items-center mb-3">
-                <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center mr-4 text-2xl font-bold text-yellow-700">
-                  #{i + 1}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-xl text-gray-900">{producto.nombre}</h3>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-8 text-sm text-gray-600">
-                <div>Ventas: <span className="font-bold text-2xl text-yellow-600">{producto.ventas}</span></div>
-                <div>Ingresos: <span className="font-bold text-2xl text-green-600">${producto.ingresos.toLocaleString()}</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="bg-[var(--body)] rounded-3xl shadow-2xl overflow-hidden border-1 border-white">
+        {loading ? (
+          <div className="p-8 text-center text-white">Cargando productos...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">{error}</div>
+        ) : products.length === 0 ? (
+          <div className="p-8 text-center text-white">
+            No hay ventas registradas
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-[var(--body)] text-white">
+                <tr>
+                  <th className="p-4 text-left">#</th>
+                  <th className="p-4 text-left">Producto</th>
+                  <th className="p-4 text-left">Descripción</th>
+                  <th className="p-4 text-right">Precio</th>
+                  <th className="p-4 text-right">Vendidos</th>
+                  <th className="p-4 text-right">Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((item, index) => (
+                  <tr key={item.product_id} className="border-t border-white text-white hover:bg-red-500/20 transition-all">
+                    <td className="p-4">{index + 1}</td>
+                    <td className="p-4 font-semibold">{item.nombre || "N/D"}</td>
+                    <td className="p-4">{item.descripcion || "N/D"}</td>
+                    <td className="p-4 text-right">
+                      {Number(item.precio || 0).toLocaleString("es-VE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="p-4 text-right font-bold">
+                      {Number(item.total_sold || 0).toLocaleString("es-VE")}
+                    </td>
+                    <td className="p-4 text-right font-bold">
+                      {Number(item.total_revenue || 0).toLocaleString("es-VE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default MasVendido;
+export default TopProducts;
