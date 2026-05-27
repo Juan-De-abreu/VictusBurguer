@@ -134,7 +134,18 @@ if ($resource === 'payments_personal') {
     require_once 'api/payments_personal.php';
     exit();
 }
-
+if ($resource === 'top_products') {
+    require_once 'api/top_products.php';
+    exit();
+}
+if ($resource === 'least_sold_products') {
+    require_once 'api/least_sold_products.php';
+    exit();
+}
+if ($resource === 'inventory') {
+    require_once 'api/inventory.php';
+    exit();
+}
 if ($resource === 'fixed_costs') {
     require_once 'api/fixed_costs.php';
     exit();
