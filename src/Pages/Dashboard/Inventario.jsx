@@ -1,6 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "../../config/api";
 
+const EMPTY_FORM = {
+  movement_type: "adjust",
+  quantity: 1,
+  reference_type: "manual",
+  reference_id: 0,
+  notes: "",
+};
+
+const EMPTY_FILTERS = {
+  search: "",
+  status: "all",
+  type: "all",
+};
+
 const Inventario = () => {
   const [items, setItems] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -13,19 +27,8 @@ const Inventario = () => {
   const [movimientosError, setMovimientosError] = useState("");
 
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    movement_type: "adjust",
-    quantity: 1,
-    reference_type: "manual",
-    reference_id: 0,
-    notes: "",
-  });
-
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "all",
-    type: "all",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
 
   const formatNumber = (value) =>
     Number(value || 0).toLocaleString("es-VE", {
@@ -35,21 +38,28 @@ const Inventario = () => {
 
   const buildQuery = () => {
     const params = new URLSearchParams();
-    if (filters.search) params.append("search", filters.search);
+    if (filters.search.trim()) params.append("search", filters.search.trim());
     if (filters.status !== "all") params.append("status", filters.status);
     if (filters.type !== "all") params.append("type", filters.type);
     return params.toString();
+  };
+
+  const normalizeItems = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
   };
 
   const fetchItems = async () => {
     try {
       setLoading(true);
       setError("");
-      const res = await fetch(`${API_BASE_URL}/inventory?${buildQuery()}`);
+      const qs = buildQuery();
+      const res = await fetch(`${API_BASE_URL}/inventory${qs ? `?${qs}` : ""}`);
       const data = await res.json();
 
       if (!res.ok || data.error) throw new Error(data.error || "Error cargando inventario");
-      setItems(Array.isArray(data.data) ? data.data : []);
+      setItems(normalizeItems(data));
     } catch (e) {
       setError(e.message);
       setItems([]);
@@ -62,25 +72,30 @@ const Inventario = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/categories`);
       const data = await res.json();
-      if (res.ok && Array.isArray(data)) setCategorias(data);
-    } catch {}
+      const normalized = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+      setCategorias(normalized);
+    } catch {
+      setCategorias([]);
+    }
   };
 
   const fetchMovimientos = async (itemId) => {
     try {
       setMovimientosLoading(true);
       setMovimientosError("");
+
       const res = await fetch(`${API_BASE_URL}/inventory?item_id=${itemId}`);
       const data = await res.json();
-
       if (!res.ok || data.error) throw new Error(data.error || "No se pudo cargar el detalle");
-      setSelectedItem(data.data || null);
+
+      const item = data.item || data.data || data;
+      setSelectedItem(item || null);
 
       const movRes = await fetch(`${API_BASE_URL}/inventory?item_id=${itemId}&movements=1`);
       const movData = await movRes.json();
       if (!movRes.ok || movData.error) throw new Error(movData.error || "Error cargando movimientos");
 
-      setMovimientos(Array.isArray(movData.data) ? movData.data : []);
+      setMovimientos(Array.isArray(movData.data) ? movData.data : Array.isArray(movData) ? movData : []);
     } catch (e) {
       setMovimientosError(e.message);
       setMovimientos([]);
@@ -99,10 +114,10 @@ const Inventario = () => {
 
   const stats = useMemo(() => {
     const total = items.length;
-    const urgente = items.filter((x) => Number(x.stock_available || 0) <= 1000).length;
+    const urgente = items.filter((x) => Number(x.stock_available || 0) > 0 && Number(x.stock_available || 0) <= 1000).length;
     const agotado = items.filter((x) => Number(x.stock_available || 0) <= 0).length;
-    const normal = total - urgente;
-    return { total, urgente, agotado, normal };
+    const normal = total - urgente - agotado;
+    return { total, urgente, agotado, normal: Math.max(normal, 0) };
   }, [items]);
 
   const getEstado = (item) => {
@@ -113,22 +128,18 @@ const Inventario = () => {
   };
 
   const openModal = async (item) => {
-    setSelectedItem(null);
+    setSelectedItem(item);
     setMovimientos([]);
+    setMovimientosError("");
+    setForm(EMPTY_FORM);
     await fetchMovimientos(item.item_id);
-    setForm({
-      movement_type: "adjust",
-      quantity: 1,
-      reference_type: "manual",
-      reference_id: 0,
-      notes: "",
-    });
   };
 
   const closeModal = () => {
     setSelectedItem(null);
     setMovimientos([]);
     setMovimientosError("");
+    setForm(EMPTY_FORM);
   };
 
   const submitMovement = async (e) => {
@@ -143,7 +154,7 @@ const Inventario = () => {
         quantity: Number(form.quantity || 0),
         reference_type: form.reference_type,
         reference_id: Number(form.reference_id || 0),
-        notes: form.notes,
+        notes: form.notes.trim(),
       };
 
       const res = await fetch(`${API_BASE_URL}/inventory`, {
@@ -229,7 +240,7 @@ const Inventario = () => {
 
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => setFilters({ search: "", status: "all", type: "all" })}
+            onClick={() => setFilters(EMPTY_FILTERS)}
             className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200"
           >
             Limpiar filtros

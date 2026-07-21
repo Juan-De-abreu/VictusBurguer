@@ -7,6 +7,7 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
   const userId = Number(user?.rol || 0);
 
   // Config menú
+const chefUserId = user?.user_id || user?.id;
   const menuConfig = {
     1: { 
       title: "🚀 Uber", 
@@ -19,8 +20,9 @@ const NavbarDashboard = ({ isMobileOpen, onToggle, setAjustesModalOpen }) => { /
       title: "👨‍🍳 Chef", 
       items: [
         { path: '/dashboard/pedidos-pendientes', label: ' Pendientes', icon: '⏳' },
-        { path: '/dashboard/mis-pedidos', label: ' Tus Pedidos', icon: '✅' },
-        { path: '/dashboard/inventario', label: ' Inventario', icon: '📦' }
+        { path: '/dashboard/mis-pedidos', label: ' Tus Pedidos', icon: '📋' },
+        { path: '/dashboard/pedidos-culminados', label: ' Pedidos culminados', icon: '✅' },
+        { path: '/dashboard/inventariochef', label: ' InventarioResumido', icon: '📦' }
       ]
     },
     3: { 
