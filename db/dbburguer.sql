@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 13-05-2026 a las 02:27:18
--- Versión del servidor: 9.1.0
--- Versión de PHP: 8.3.14
+-- Tiempo de generación: 21-07-2026 a las 22:26:15
+-- Versión del servidor: 8.4.7
+-- Versión de PHP: 8.3.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -138,16 +138,16 @@ INSERT INTO `favorites` (`id`, `id_product`, `id_user`) VALUES
 DROP TABLE IF EXISTS `fixed_costs`;
 CREATE TABLE IF NOT EXISTS `fixed_costs` (
   `cost_id` int NOT NULL AUTO_INCREMENT,
-  `cost_name` varchar(120) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `cost_category` enum('alquiler','internet','servicios','software','seguridad','mantenimiento','otros') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'otros',
-  `supplier_name` varchar(120) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `invoice_number` varchar(30) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `payment_status` enum('pendiente','pagada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
-  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `cost_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `cost_category` enum('alquiler','internet','servicios','software','seguridad','mantenimiento','otros') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'otros',
+  `supplier_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `invoice_number` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `payment_status` enum('pendiente','pagada','anulada') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `currency` enum('USD','VES') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
   `amount` decimal(12,2) NOT NULL DEFAULT '0.00',
   `due_date` date DEFAULT NULL,
   `paid_date` date DEFAULT NULL,
-  `description` text COLLATE utf8mb4_spanish2_ci,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`cost_id`),
   KEY `idx_due_date` (`due_date`)
@@ -167,28 +167,305 @@ INSERT INTO `fixed_costs` (`cost_id`, `cost_name`, `cost_category`, `supplier_na
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `inventory_alerts`
+--
+
+DROP TABLE IF EXISTS `inventory_alerts`;
+CREATE TABLE IF NOT EXISTS `inventory_alerts` (
+  `alert_id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `alert_type` enum('low_stock','out_of_stock','critical') NOT NULL,
+  `message` varchar(255) NOT NULL,
+  `status` enum('open','acknowledged','resolved') NOT NULL DEFAULT 'open',
+  `severity` enum('low','medium','high','critical') NOT NULL DEFAULT 'high',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `resolved_at` datetime DEFAULT NULL,
+  `resolved_by` int DEFAULT NULL,
+  PRIMARY KEY (`alert_id`),
+  KEY `idx_status_created` (`status`,`created_at`),
+  KEY `fk_alert_item` (`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_audit_log`
+--
+
+DROP TABLE IF EXISTS `inventory_audit_log`;
+CREATE TABLE IF NOT EXISTS `inventory_audit_log` (
+  `log_id` bigint NOT NULL AUTO_INCREMENT,
+  `entity_type` varchar(50) NOT NULL,
+  `entity_id` bigint NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `before_data` json DEFAULT NULL,
+  `after_data` json DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`),
+  KEY `idx_entity` (`entity_type`,`entity_id`),
+  KEY `fk_audit_user` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_audit_log`
+--
+
+INSERT INTO `inventory_audit_log` (`log_id`, `entity_type`, `entity_id`, `action`, `before_data`, `after_data`, `user_id`, `created_at`) VALUES
+(1, 'inventory_items', 1, 'initial_load', NULL, '{\"stock_on_hand\": 4500, \"stock_reserved\": 300}', 1, '2026-07-21 17:52:54'),
+(2, 'inventory_items', 5, 'alert_created', NULL, '{\"status\": \"critical\"}', 1, '2026-07-21 17:52:54'),
+(3, 'product_bom', 1, 'recipe_created', NULL, '{\"items\": 7}', 1, '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_batches`
+--
+
+DROP TABLE IF EXISTS `inventory_batches`;
+CREATE TABLE IF NOT EXISTS `inventory_batches` (
+  `batch_id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `location_id` int DEFAULT NULL,
+  `batch_code` varchar(100) NOT NULL,
+  `quantity_on_hand` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `quantity_reserved` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `received_at` date DEFAULT NULL,
+  `expires_at` date DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`batch_id`),
+  KEY `idx_item_expiry` (`item_id`,`expires_at`),
+  KEY `fk_batch_location` (`location_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_batches`
+--
+
+INSERT INTO `inventory_batches` (`batch_id`, `item_id`, `location_id`, `batch_code`, `quantity_on_hand`, `quantity_reserved`, `received_at`, `expires_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 'CARNE-20260721-A', 2500.00, 100.00, '2026-07-21', '2026-07-28', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(2, 2, 1, 'PAN-20260721-A', 1200.00, 50.00, '2026-07-21', '2026-07-24', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(3, 3, 2, 'QUESO-20260721-A', 900.00, 20.00, '2026-07-21', '2026-08-05', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(4, 5, 2, 'LECHUGA-20260721-A', 900.00, 20.00, '2026-07-21', '2026-07-23', '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_counts`
+--
+
+DROP TABLE IF EXISTS `inventory_counts`;
+CREATE TABLE IF NOT EXISTS `inventory_counts` (
+  `count_id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `location_id` int DEFAULT NULL,
+  `counted_qty` decimal(12,2) NOT NULL,
+  `system_qty` decimal(12,2) NOT NULL,
+  `difference_qty` decimal(12,2) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `counted_by` int DEFAULT NULL,
+  `counted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`count_id`),
+  KEY `fk_count_item` (`item_id`),
+  KEY `fk_count_location` (`location_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_counts`
+--
+
+INSERT INTO `inventory_counts` (`count_id`, `item_id`, `location_id`, `counted_qty`, `system_qty`, `difference_qty`, `notes`, `counted_by`, `counted_at`) VALUES
+(1, 1, 1, 4500.00, 4500.00, 0.00, 'Coincide con sistema', 1, '2026-07-21 17:52:54'),
+(2, 5, 2, 890.00, 900.00, -10.00, 'Merma pequeña detectada', 1, '2026-07-21 17:52:54'),
+(3, 7, 1, 780.00, 800.00, -20.00, 'Diferencia por consumo', 1, '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_items`
+--
+
+DROP TABLE IF EXISTS `inventory_items`;
+CREATE TABLE IF NOT EXISTS `inventory_items` (
+  `item_id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(150) NOT NULL,
+  `descripcion` text,
+  `tipo` enum('ingrediente','instrumento') NOT NULL DEFAULT 'ingrediente',
+  `unit` varchar(50) NOT NULL DEFAULT 'unidad',
+  `stock_on_hand` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `stock_reserved` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `stock_min` decimal(12,2) NOT NULL DEFAULT '1000.00',
+  `stock_max` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `urgent_alert` tinyint(1) NOT NULL DEFAULT '1',
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_items`
+--
+
+INSERT INTO `inventory_items` (`item_id`, `nombre`, `descripcion`, `tipo`, `unit`, `stock_on_hand`, `stock_reserved`, `stock_min`, `stock_max`, `urgent_alert`, `active`, `created_at`, `updated_at`) VALUES
+(1, 'Carne de res', 'Materia prima principal para hamburguesas', 'ingrediente', 'kg', 4500.00, 300.00, 1000.00, 8000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(2, 'Pan brioche', 'Pan para hamburguesas', 'ingrediente', 'unid', 2200.00, 150.00, 1000.00, 6000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(3, 'Queso cheddar', 'Láminas de queso', 'ingrediente', 'unid', 1800.00, 80.00, 1000.00, 5000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(4, 'Tomate', 'Rodajas para preparación', 'ingrediente', 'kg', 1400.00, 40.00, 1000.00, 3000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(5, 'Lechuga', 'Hojas frescas', 'ingrediente', 'kg', 900.00, 20.00, 1000.00, 2500.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(6, 'Papas fritas', 'Guarnición principal', 'ingrediente', 'kg', 3200.00, 200.00, 1000.00, 7000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(7, 'Aceite vegetal', 'Aceite de fritura', 'ingrediente', 'litro', 800.00, 0.00, 1000.00, 4000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(8, 'Salsa especial', 'Salsa de la casa', 'ingrediente', 'litro', 600.00, 0.00, 1000.00, 2000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(9, 'Empaques para hamburguesa', 'Caja o envoltura para entrega', 'instrumento', 'unid', 5000.00, 500.00, 1000.00, 15000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(10, 'Guantes desechables', 'Protección para manipulación', 'instrumento', 'caja', 300.00, 0.00, 1000.00, 3000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_locations`
+--
+
+DROP TABLE IF EXISTS `inventory_locations`;
+CREATE TABLE IF NOT EXISTS `inventory_locations` (
+  `location_id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`location_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_locations`
+--
+
+INSERT INTO `inventory_locations` (`location_id`, `nombre`, `descripcion`, `active`, `created_at`) VALUES
+(1, 'Depósito principal', 'Almacén general de ingredientes e instrumentos', 1, '2026-07-21 17:52:54'),
+(2, 'Cocina fría', 'Productos refrigerados y perecederos', 1, '2026-07-21 17:52:54'),
+(3, 'Cocina caliente', 'Área de preparación principal', 1, '2026-07-21 17:52:54'),
+(4, 'Barra', 'Ingredientes y utensilios del área de bebidas', 1, '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_movements`
+--
+
+DROP TABLE IF EXISTS `inventory_movements`;
+CREATE TABLE IF NOT EXISTS `inventory_movements` (
+  `movement_id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `movement_type` enum('in','out','reserve','release','adjust') NOT NULL,
+  `quantity` decimal(12,2) NOT NULL,
+  `reference_type` varchar(50) NOT NULL,
+  `reference_id` bigint NOT NULL DEFAULT '0',
+  `notes` varchar(255) DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`movement_id`),
+  KEY `idx_item_date` (`item_id`,`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_movements`
+--
+
+INSERT INTO `inventory_movements` (`movement_id`, `item_id`, `movement_type`, `quantity`, `reference_type`, `reference_id`, `notes`, `created_by`, `created_at`) VALUES
+(1, 1, 'in', 4500.00, 'initial_load', 0, 'Carga inicial de carne', 1, '2026-07-21 17:52:54'),
+(2, 2, 'in', 2200.00, 'initial_load', 0, 'Carga inicial de pan', 1, '2026-07-21 17:52:54'),
+(3, 3, 'in', 1800.00, 'initial_load', 0, 'Carga inicial de queso', 1, '2026-07-21 17:52:54'),
+(4, 4, 'in', 1400.00, 'initial_load', 0, 'Carga inicial de tomate', 1, '2026-07-21 17:52:54'),
+(5, 5, 'in', 900.00, 'initial_load', 0, 'Carga inicial de lechuga', 1, '2026-07-21 17:52:54'),
+(6, 6, 'in', 3200.00, 'initial_load', 0, 'Carga inicial de papas', 1, '2026-07-21 17:52:54'),
+(7, 7, 'in', 800.00, 'initial_load', 0, 'Carga inicial de aceite', 1, '2026-07-21 17:52:54'),
+(8, 8, 'in', 600.00, 'initial_load', 0, 'Carga inicial de salsa', 1, '2026-07-21 17:52:54'),
+(9, 9, 'in', 5000.00, 'initial_load', 0, 'Carga inicial de empaques', 1, '2026-07-21 17:52:54'),
+(10, 10, 'in', 300.00, 'initial_load', 0, 'Carga inicial de guantes', 1, '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_reservations`
+--
+
+DROP TABLE IF EXISTS `inventory_reservations`;
+CREATE TABLE IF NOT EXISTS `inventory_reservations` (
+  `reservation_id` bigint NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `order_type` enum('cliente','shop') NOT NULL,
+  `order_id` bigint NOT NULL,
+  `quantity` decimal(12,2) NOT NULL,
+  `status` enum('active','released','consumed','cancelled') NOT NULL DEFAULT 'active',
+  `expires_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`reservation_id`),
+  KEY `idx_item_status` (`item_id`,`status`),
+  KEY `idx_order` (`order_type`,`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_reservations`
+--
+
+INSERT INTO `inventory_reservations` (`reservation_id`, `item_id`, `order_type`, `order_id`, `quantity`, `status`, `expires_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 'cliente', 1001, 20.00, 'active', '2026-07-21 15:52:54', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(2, 2, 'cliente', 1001, 100.00, 'active', '2026-07-21 15:52:54', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(3, 3, 'cliente', 1002, 50.00, 'active', '2026-07-21 14:52:54', '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(4, 9, 'shop', 2001, 200.00, 'active', '2026-07-21 17:52:54', '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventory_settings`
+--
+
+DROP TABLE IF EXISTS `inventory_settings`;
+CREATE TABLE IF NOT EXISTS `inventory_settings` (
+  `setting_id` int NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`setting_id`),
+  UNIQUE KEY `setting_key` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_settings`
+--
+
+INSERT INTO `inventory_settings` (`setting_id`, `setting_key`, `setting_value`, `description`, `updated_at`) VALUES
+(1, 'min_stock_default', '1000', 'Mínimo urgente global por defecto', '2026-07-21 17:43:44'),
+(2, 'reservation_mode', 'strict', 'Modo estricto de reservas', '2026-07-21 17:43:44'),
+(3, 'alert_critical_enabled', '1', 'Activar alertas críticas', '2026-07-21 17:43:44');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `invoices`
 --
 
 DROP TABLE IF EXISTS `invoices`;
 CREATE TABLE IF NOT EXISTS `invoices` (
   `invoice_id` int NOT NULL AUTO_INCREMENT,
-  `invoice_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `control_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `invoice_number` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `control_number` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
   `order_id` int NOT NULL,
-  `customer_name` varchar(120) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `customer_cedula` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `customer_email` varchar(120) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `customer_phone` varchar(30) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `customer_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `customer_cedula` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `customer_email` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `customer_phone` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `currency` enum('USD','VES') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
   `exchange_rate` decimal(12,6) DEFAULT NULL,
   `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
   `tax_total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `issue_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('emitida','pagada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'emitida',
-  `pdf_url` varchar(255) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `image_url` varchar(255) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `status` enum('emitida','pagada','anulada') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'emitida',
+  `pdf_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `image_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
   PRIMARY KEY (`invoice_id`),
   UNIQUE KEY `invoice_number` (`invoice_number`),
   UNIQUE KEY `control_number` (`control_number`),
@@ -218,17 +495,22 @@ CREATE TABLE IF NOT EXISTS `orders_clientes` (
   `order_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `invoice_id` int DEFAULT NULL,
-  `order_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `order_type` enum('income') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'income',
-  `payment_status` enum('pendiente','pagada','rechazada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
-  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
-  `payment_method` varchar(50) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `order_number` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `order_type` enum('income') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'income',
+  `payment_status` enum('pendiente','pagada','rechazada','anulada') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `currency` enum('USD','VES') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
   `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
   `tax_total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `discount_total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `kitchen_status` enum('pendiente','en_cocina','cocinado','entregado','cancelado') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `cooked_at` datetime DEFAULT NULL,
+  `chef_user_id` int DEFAULT NULL,
+  `served_at` datetime DEFAULT NULL,
+  `kitchen_notes` text COLLATE utf8mb4_spanish2_ci,
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `uq_order_number` (`order_number`),
   KEY `idx_user` (`user_id`),
@@ -239,12 +521,12 @@ CREATE TABLE IF NOT EXISTS `orders_clientes` (
 -- Volcado de datos para la tabla `orders_clientes`
 --
 
-INSERT INTO `orders_clientes` (`order_id`, `user_id`, `invoice_id`, `order_number`, `order_type`, `payment_status`, `currency`, `payment_method`, `subtotal`, `tax_total`, `discount_total`, `total`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'ORD-C-0001', 'income', 'pagada', 'USD', 'pagomovil', 22.00, 3.52, 0.00, 25.52, '2026-05-01 14:15:00', '2026-05-11 15:19:26'),
-(2, 2, 2, 'ORD-C-0002', 'income', 'pendiente', 'VES', 'efectivo', 450.00, 72.00, 0.00, 522.00, '2026-05-02 15:20:00', '2026-05-11 15:19:26'),
-(3, 3, 3, 'ORD-C-0003', 'income', 'pagada', 'USD', 'zelle', 18.00, 2.88, 0.00, 20.88, '2026-05-03 18:05:00', '2026-05-11 15:19:26'),
-(4, 4, 4, 'ORD-C-0004', 'income', 'pagada', 'VES', 'tarjeta', 980.00, 156.80, 25.00, 1111.80, '2026-05-04 13:30:00', '2026-05-11 15:19:26'),
-(5, 5, 5, 'ORD-C-0005', 'income', 'rechazada', 'USD', 'paypal', 12.50, 2.00, 0.00, 14.50, '2026-05-05 21:40:00', '2026-05-11 15:19:26');
+INSERT INTO `orders_clientes` (`order_id`, `user_id`, `invoice_id`, `order_number`, `order_type`, `payment_status`, `currency`, `payment_method`, `subtotal`, `tax_total`, `discount_total`, `total`, `created_at`, `updated_at`, `kitchen_status`, `cooked_at`, `chef_user_id`, `served_at`, `kitchen_notes`) VALUES
+(1, 1, 1, 'ORD-C-0001', 'income', 'pagada', 'USD', 'pagomovil', 22.00, 3.52, 0.00, 25.52, '2026-05-01 14:15:00', '2026-07-21 21:37:21', 'pendiente', NULL, 13, NULL, NULL),
+(2, 2, 2, 'ORD-C-0002', 'income', 'pendiente', 'VES', 'efectivo', 450.00, 72.00, 0.00, 522.00, '2026-05-02 15:20:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
+(3, 3, 3, 'ORD-C-0003', 'income', 'pagada', 'USD', 'zelle', 18.00, 2.88, 0.00, 20.88, '2026-05-03 18:05:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
+(4, 4, 4, 'ORD-C-0004', 'income', 'pagada', 'VES', 'tarjeta', 980.00, 156.80, 25.00, 1111.80, '2026-05-04 13:30:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
+(5, 5, 5, 'ORD-C-0005', 'income', 'rechazada', 'USD', 'paypal', 12.50, 2.00, 0.00, 14.50, '2026-05-05 21:40:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -256,17 +538,17 @@ DROP TABLE IF EXISTS `orders_shop`;
 CREATE TABLE IF NOT EXISTS `orders_shop` (
   `shop_order_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `order_number` varchar(30) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `order_type` enum('expense') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'expense',
-  `expense_category` enum('proveedores','insumos','mantenimiento','marketing','servicios','otros') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'otros',
-  `payment_status` enum('pendiente','pagada','rechazada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
-  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
-  `payment_method` varchar(50) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `order_number` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `order_type` enum('expense') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'expense',
+  `expense_category` enum('proveedores','insumos','mantenimiento','marketing','servicios','otros') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'otros',
+  `payment_status` enum('pendiente','pagada','rechazada','anulada') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `currency` enum('USD','VES') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
   `subtotal` decimal(12,2) NOT NULL DEFAULT '0.00',
   `tax_total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `discount_total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `total` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `note` text COLLATE utf8mb4_spanish2_ci,
+  `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`shop_order_id`),
@@ -295,7 +577,7 @@ CREATE TABLE IF NOT EXISTS `order_items_clientes` (
   `order_item_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `product_id` int NOT NULL,
-  `product_name` varchar(150) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `product_name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
   `quantity` int NOT NULL,
   `unit_price` decimal(12,2) NOT NULL,
   `line_total` decimal(12,2) NOT NULL,
@@ -329,15 +611,15 @@ INSERT INTO `order_items_clientes` (`order_item_id`, `order_id`, `product_id`, `
 DROP TABLE IF EXISTS `payments_personal`;
 CREATE TABLE IF NOT EXISTS `payments_personal` (
   `payment_id` int NOT NULL AUTO_INCREMENT,
-  `employee_name` varchar(120) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `employee_cedula` varchar(30) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `role_name` varchar(80) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `payment_type` enum('sueldo','bono','comision','vacaciones','utilidades') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'sueldo',
-  `payment_status` enum('pendiente','pagada','anulada') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
-  `currency` enum('USD','VES') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
-  `payment_method` varchar(50) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `employee_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `employee_cedula` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `role_name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `payment_type` enum('sueldo','bono','comision','vacaciones','utilidades') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'sueldo',
+  `payment_status` enum('pendiente','pagada','anulada') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `currency` enum('USD','VES') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'USD',
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
   `amount` decimal(12,2) NOT NULL DEFAULT '0.00',
-  `description` text COLLATE utf8mb4_spanish2_ci,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci,
   `paid_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`payment_id`),
@@ -395,6 +677,68 @@ INSERT INTO `products` (`product_id`, `category_id`, `nombre`, `descripcion`, `p
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `product_bom`
+--
+
+DROP TABLE IF EXISTS `product_bom`;
+CREATE TABLE IF NOT EXISTS `product_bom` (
+  `bom_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `item_id` int NOT NULL,
+  `quantity_required` decimal(12,2) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`bom_id`),
+  UNIQUE KEY `uq_product_item` (`product_id`,`item_id`),
+  KEY `fk_bom_item` (`item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `product_bom`
+--
+
+INSERT INTO `product_bom` (`bom_id`, `product_id`, `item_id`, `quantity_required`, `active`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 0.20, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(2, 1, 2, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(3, 1, 3, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(4, 1, 4, 0.05, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(5, 1, 5, 0.03, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(6, 1, 8, 0.02, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(7, 1, 9, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(8, 2, 1, 0.15, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(9, 2, 2, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(10, 2, 3, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(11, 2, 6, 0.20, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(12, 2, 8, 0.02, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(13, 2, 9, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(14, 3, 2, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(15, 3, 6, 0.25, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(16, 3, 7, 0.05, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(17, 3, 9, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `product_inventory`
+--
+
+DROP TABLE IF EXISTS `product_inventory`;
+CREATE TABLE IF NOT EXISTS `product_inventory` (
+  `inventory_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `stock_on_hand` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `stock_reserved` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `stock_min` decimal(12,2) NOT NULL DEFAULT '1000.00',
+  `stock_max` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`inventory_id`),
+  UNIQUE KEY `uq_product_inventory` (`product_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `shop_order_items`
 --
 
@@ -402,7 +746,7 @@ DROP TABLE IF EXISTS `shop_order_items`;
 CREATE TABLE IF NOT EXISTS `shop_order_items` (
   `item_id` int NOT NULL AUTO_INCREMENT,
   `shop_order_id` int NOT NULL,
-  `concept_name` varchar(150) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `concept_name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
   `quantity` int NOT NULL DEFAULT '1',
   `unit_price` decimal(12,2) NOT NULL,
   `line_total` decimal(12,2) NOT NULL,
@@ -438,7 +782,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `rol` int NOT NULL DEFAULT '1',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb3;
 
 --
 -- Volcado de datos para la tabla `users`
@@ -456,7 +800,8 @@ INSERT INTO `users` (`user_id`, `nombre`, `email`, `password`, `telefono`, `crea
 (9, 'David Ruiz', 'david.ruiz@ujap.edu.ve', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0412-7778899', '2026-01-20 14:10:46', 0),
 (10, 'Sofía Castro', 'sofia.castro@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0416-0001122', '2026-01-20 14:10:46', 0),
 (11, 'juan jose de abreu diaz', 'juanadmin@gmail.com', '$2y$12$FkhiRv6HXyACNuR5woZI5ulMgdhp/M6qkK1/nFkUeUovzghJkg6S.', '+58 4144145969', '2026-03-03 17:48:42', 4),
-(12, 'Juan De abreu', 'juancliente@gmail.com', '$2y$12$/.rb5BNksrFd0QmPdaGfnuBF73IGFoTF8/LMG8XnodHU86nE.QBd.', '+58 4144145969', '2026-03-30 00:26:01', 0);
+(12, 'Juan De abreu', 'juancliente@gmail.com', '$2y$12$/.rb5BNksrFd0QmPdaGfnuBF73IGFoTF8/LMG8XnodHU86nE.QBd.', '+58 4144145969', '2026-03-30 00:26:01', 0),
+(13, 'juan chef de abreu', 'juanchef@gmail.com', '$2y$12$AbxIjnXwmrav/V56qJrs9u9PhGWQETnn/fpnb53/JVBsBD2IKHqDq', '+58 4144145969', '2026-07-21 18:52:05', 2);
 
 --
 -- Restricciones para tablas volcadas
@@ -469,10 +814,55 @@ ALTER TABLE `addresses`
   ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
+-- Filtros para la tabla `inventory_alerts`
+--
+ALTER TABLE `inventory_alerts`
+  ADD CONSTRAINT `fk_alert_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `inventory_audit_log`
+--
+ALTER TABLE `inventory_audit_log`
+  ADD CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `inventory_batches`
+--
+ALTER TABLE `inventory_batches`
+  ADD CONSTRAINT `fk_batch_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_batch_location` FOREIGN KEY (`location_id`) REFERENCES `inventory_locations` (`location_id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `inventory_counts`
+--
+ALTER TABLE `inventory_counts`
+  ADD CONSTRAINT `fk_count_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_count_location` FOREIGN KEY (`location_id`) REFERENCES `inventory_locations` (`location_id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `inventory_movements`
+--
+ALTER TABLE `inventory_movements`
+  ADD CONSTRAINT `fk_mov_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `inventory_reservations`
+--
+ALTER TABLE `inventory_reservations`
+  ADD CONSTRAINT `fk_res_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE;
+
+--
 -- Filtros para la tabla `products`
 --
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
+
+--
+-- Filtros para la tabla `product_bom`
+--
+ALTER TABLE `product_bom`
+  ADD CONSTRAINT `fk_bom_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`item_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_bom_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
