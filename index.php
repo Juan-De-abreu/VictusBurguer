@@ -1,214 +1,165 @@
 <?php
-// index.php - API GATEWAY v2.6 INDIVIDUAL ROUTES ✅
-// Victu's Burgers Backend - Mayo 2026
+declare(strict_types=1);
+
+// index.php - API GATEWAY v3.0
+// Victu's Burgers Backend
+
+$allowedOrigins = [
+    'http://localhost',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173'
+];
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins, true)) {
+    header("Access-Control-Allow-Origin: {$origin}");
+    header('Vary: Origin');
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
 
 $headers = [
     'Content-Type: application/json; charset=utf-8',
-    'Access-Control-Allow-Origin: *',
     'Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS',
-    'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin',
     'Access-Control-Max-Age: 86400',
     'X-Frame-Options: DENY',
     'X-Content-Type-Options: nosniff',
     'Referrer-Policy: strict-origin-when-cross-origin'
 ];
 
-foreach ($headers as $header) header($header);
+foreach ($headers as $header) {
+    header($header);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit(0);
+    http_response_code(204);
+    exit;
 }
 
-$request_uri = $_SERVER['REQUEST_URI'];
-$base_path = '/victus-backend';
-$uri = trim(str_replace($base_path, '', parse_url($request_uri, PHP_URL_PATH)), '/');
-$segments = explode('/', $uri);
+$basePath = '/victus-backend';
+$requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+$uri = trim(str_replace($basePath, '', $requestPath), '/');
+$segments = $uri === '' ? [] : explode('/', $uri);
 
-if ($segments[0] === 'api' && empty($segments[1])) {
-    header('Content-Type: text/html; charset=utf-8');
-    $docs = file_exists('view/index.html') ? file_get_contents('view/index.html') :
-        '<h1>🍔 Victu\'s Burgers API</h1><p>✅ /api/users, /api/auth, /api/products, /api/invoices...</p>';
-    echo $docs;
-    exit();
-}
-
-if (!file_exists('config/database.php')) {
+if (!file_exists(__DIR__ . '/config/database.php')) {
     http_response_code(500);
-    echo json_encode(['error' => '❌ Database config missing'], JSON_UNESCAPED_UNICODE);
-    exit();
+    echo json_encode(['success' => false, 'error' => 'Database config missing'], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-require_once 'config/database.php';
-global $pdo;
+require_once __DIR__ . '/config/database.php';
+
+if (empty($segments) || $segments[0] === '') {
+    header('Content-Type: text/html; charset=utf-8');
+    $docs = file_exists(__DIR__ . '/view/index.html')
+        ? file_get_contents(__DIR__ . '/view/index.html')
+        : '<h1>🍔 Victu\'s Burgers API</h1><p>✅ /api/auth, /api/users, /api/products, /api/orders_clientes, /api/inventory...</p>';
+    echo $docs;
+    exit;
+}
 
 if ($segments[0] !== 'api') {
     header('Location: /victus-backend/api/', true, 301);
-    exit();
+    exit;
 }
 
 $resource = $segments[1] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
-if ($resource === 'auth') {
-    require_once 'api/auth.php';
-    exit();
-}
+$routes = [
+    'auth' => __DIR__ . '/api/auth.php',
+    'users' => __DIR__ . '/api/users.php',
+    'favorites' => __DIR__ . '/api/favorites.php',
+    'products' => __DIR__ . '/api/products.php',
+    'categories' => __DIR__ . '/api/categories.php',
+    'addresses' => __DIR__ . '/api/addresses.php',
+    'drivers' => __DIR__ . '/api/drivers.php',
+    'payments' => __DIR__ . '/api/payments.php',
+    'orders' => __DIR__ . '/api/orders.php',
+    'order_items' => __DIR__ . '/api/order_items.php',
+    'invoices' => __DIR__ . '/api/invoices.php',
+    'invoice_download' => __DIR__ . '/api/invoice_download.php',
+    'orders_clientes' => __DIR__ . '/api/orders_clientes.php',
+    'orders_shop' => __DIR__ . '/api/orders_shop.php',
+    'order_items_clientes' => __DIR__ . '/api/order_items_clientes.php',
+    'shop_order_items' => __DIR__ . '/api/shop_order_items.php',
+    'payments_personal' => __DIR__ . '/api/payments_personal.php',
+    'top_products' => __DIR__ . '/api/top_products.php',
+    'least_sold_products' => __DIR__ . '/api/least_sold_products.php',
+    'inventory' => __DIR__ . '/api/inventory.php',
+    'fixed_costs' => __DIR__ . '/api/fixed_costs.php',
+    'dashboard_records' => __DIR__ . '/api/dashboard_records.php',
+    'chef_orders' => __DIR__ . '/api/chef_orders.php',
+    'kitchen' => __DIR__ . '/api/kitchen.php',
+    'inventory_movements' => __DIR__ . '/api/inventory_movements.php',
+    'inventory_alerts' => __DIR__ . '/api/inventory_alerts.php',
+    'inventory_counts' => __DIR__ . '/api/inventory_counts.php',
+    'inventory_batches' => __DIR__ . '/api/inventory_batches.php',
+    'inventory_locations' => __DIR__ . '/api/inventory_locations.php',
+    'inventory_reservations' => __DIR__ . '/api/inventory_reservations.php',
+    'inventory_settings' => __DIR__ . '/api/inventory_settings.php',
+    'inventory_audit_log' => __DIR__ . '/api/inventory_audit_log.php'
+];
 
-if ($resource === 'users') {
-    require_once 'api/users.php';
-    exit();
-}
-
-if ($resource === 'favorites') {
-    require_once 'api/favorites.php';
-    exit();
-}
-
-if ($resource === 'products') {
-    require_once 'api/products.php';
-    exit();
-}
-
-if ($resource === 'categories') {
-    require_once 'api/categories.php';
-    exit();
-}
-
-if ($resource === 'addresses') {
-    require_once 'api/addresses.php';
-    exit();
-}
-
-if ($resource === 'drivers') {
-    require_once 'api/drivers.php';
-    exit();
-}
-
-if ($resource === 'payments') {
-    require_once 'api/payments.php';
-    exit();
-}
-
-if ($resource === 'orders') {
-    require_once 'api/orders.php';
-    exit();
-}
-
-if ($resource === 'order_items') {
-    require_once 'api/order_items.php';
-    exit();
-}
-
-if ($resource === 'invoices') {
-    require_once 'api/invoices.php';
-    exit();
-}
-
-if ($resource === 'invoice_download') {
-    require_once 'api/invoice_download.php';
-    exit();
-}
-
-if ($resource === 'orders_clientes') {
-    require_once 'api/orders_clientes.php';
-    exit();
-}
-
-if ($resource === 'orders_shop') {
-    require_once 'api/orders_shop.php';
-    exit();
-}
-
-if ($resource === 'order_items_clientes') {
-    require_once 'api/order_items_clientes.php';
-    exit();
-}
-
-if ($resource === 'shop_order_items') {
-    require_once 'api/shop_order_items.php';
-    exit();
-}
-
-if ($resource === 'payments_personal') {
-    require_once 'api/payments_personal.php';
-    exit();
-}
-if ($resource === 'top_products') {
-    require_once 'api/top_products.php';
-    exit();
-}
-if ($resource === 'least_sold_products') {
-    require_once 'api/least_sold_products.php';
-    exit();
-}
-if ($resource === 'inventory') {
-    require_once 'api/inventory.php';
-    exit();
-}
-if ($resource === 'fixed_costs') {
-    require_once 'api/fixed_costs.php';
-    exit();
-}
-
-if ($resource === 'dashboard_records') {
-    require_once 'api/dashboard_records.php';
-    exit();
+if (isset($routes[$resource]) && file_exists($routes[$resource])) {
+    require_once $routes[$resource];
+    exit;
 }
 
 switch ($resource) {
     case 'inventory':
-        handleInventory($pdo, $method);
+        handleInventory();
         break;
     case 'tasks':
-        handleTasks($pdo, $method);
+        handleTasks();
         break;
     case 'toggle-availability':
-        if ($method === 'POST') handleToggleAvailability($pdo);
-        else errorMethod();
+        if ($method === 'POST') {
+            handleToggleAvailability();
+        } else {
+            errorMethod();
+        }
         break;
     default:
-        errorNotFound([
-            'auth',
-            'users',
-            'favorites',
-            'products',
-            'categories',
-            'addresses',
-            'drivers',
-            'payments',
-            'orders',
-            'order_items',
-            'invoices',
-            'invoice_download',
-            'orders_clientes',
-            'orders_shop',
-            'order_items_clientes',
-            'shop_order_items',
-            'payments_personal',
-            'fixed_costs',
-            'dashboard_records',
-            'inventory',
-            'tasks',
-            'toggle-availability'
-        ]);
+        errorNotFound(array_keys($routes));
 }
 
-function errorMethod() {
+function errorMethod(): void
+{
     http_response_code(405);
-    echo json_encode(['error' => '❌ Método no permitido'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['success' => false, 'error' => 'Método no permitido'], JSON_UNESCAPED_UNICODE);
 }
 
-function errorNotFound($resources) {
+function errorNotFound(array $resources): void
+{
     http_response_code(404);
     echo json_encode([
-        'error' => '🔍 Endpoint no encontrado',
+        'success' => false,
+        'error' => 'Endpoint no encontrado',
         'docs' => '/api/',
-        'disponibles' => $resources
+        'disponibles' => array_values($resources)
     ], JSON_UNESCAPED_UNICODE);
 }
 
-function handleInventory($pdo, $method) { /* tu código inventory */ }
-function handleTasks($pdo, $method) { /* tu código tasks */ }
-function handleToggleAvailability($pdo) { /* tu código toggle */ }
+function handleInventory(): void
+{
+    http_response_code(501);
+    echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);
+}
+
+function handleTasks(): void
+{
+    http_response_code(501);
+    echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);
+}
+
+function handleToggleAvailability(): void
+{
+    http_response_code(501);
+    echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);
+}
 ?>

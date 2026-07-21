@@ -12,6 +12,10 @@ function isValidOrderStatus($status) {
     return in_array($status, ['pendiente', 'pagada', 'rechazada', 'anulada'], true);
 }
 
+function isValidKitchenStatus($status) {
+    return in_array($status, ['pendiente', 'en_cocina', 'cocinado', 'entregado', 'cancelado'], true);
+}
+
 function createInvoiceForClientOrder(PDO $pdo, array $order): int
 {
     $orderId = (int)$order['order_id'];
@@ -51,7 +55,7 @@ function createInvoiceForClientOrder(PDO $pdo, array $order): int
     return (int)$pdo->lastInsertId();
 }
 
-function consumirInsumosPorOrdenCliente(PDO $pdo, int $orderId, ?int $userId = null): array
+function calcularRequeridosBOM(PDO $pdo, int $orderId): array
 {
     $stmtItems = $pdo->prepare("
         SELECT product_id, quantity
@@ -89,6 +93,13 @@ function consumirInsumosPorOrdenCliente(PDO $pdo, int $orderId, ?int $userId = n
             $required[$itemId] = ($required[$itemId] ?? 0) + $qtyNeeded;
         }
     }
+
+    return $required;
+}
+
+function consumirInsumosPorOrdenCliente(PDO $pdo, int $orderId, ?int $userId = null): void
+{
+    $required = calcularRequeridosBOM($pdo, $orderId);
 
     foreach ($required as $itemId => $qtyNeeded) {
         $stmtInv = $pdo->prepare("
@@ -195,8 +206,78 @@ function consumirInsumosPorOrdenCliente(PDO $pdo, int $orderId, ?int $userId = n
         ':after_data' => json_encode($required, JSON_UNESCAPED_UNICODE),
         ':user_id' => $userId
     ]);
+}
 
-    return ['success' => true];
+function devolverInsumosPorOrdenCliente(PDO $pdo, int $orderId, ?int $userId = null): void
+{
+    $stmtOrder = $pdo->prepare("
+        SELECT order_id, kitchen_status
+        FROM orders_clientes
+        WHERE order_id = :order_id
+        FOR UPDATE
+    ");
+    $stmtOrder->execute([':order_id' => $orderId]);
+    $order = $stmtOrder->fetch(PDO::FETCH_ASSOC);
+
+    if (!$order) {
+        throw new Exception('Orden no encontrada');
+    }
+
+    $kitchenStatus = $order['kitchen_status'] ?? 'pendiente';
+    if (in_array($kitchenStatus, ['cocinado', 'entregado'], true)) {
+        throw new Exception('La orden ya fue cocinada, no se puede devolver stock');
+    }
+
+    $required = calcularRequeridosBOM($pdo, $orderId);
+
+    foreach ($required as $itemId => $qtyToReturn) {
+        $stmtInv = $pdo->prepare("
+            SELECT item_id, nombre
+            FROM inventory_items
+            WHERE item_id = :item_id
+            FOR UPDATE
+        ");
+        $stmtInv->execute([':item_id' => $itemId]);
+        $inv = $stmtInv->fetch(PDO::FETCH_ASSOC);
+
+        if (!$inv) {
+            throw new Exception("Ítem de inventario no encontrado: {$itemId}");
+        }
+
+        $upd = $pdo->prepare("
+            UPDATE inventory_items
+            SET stock_on_hand = stock_on_hand + :qty
+            WHERE item_id = :item_id
+        ");
+        $upd->execute([
+            ':qty' => $qtyToReturn,
+            ':item_id' => $itemId
+        ]);
+
+        $mov = $pdo->prepare("
+            INSERT INTO inventory_movements
+            (item_id, movement_type, quantity, reference_type, reference_id, notes, created_by)
+            VALUES (:item_id, 'in', :quantity, 'order_cancelled', :reference_id, :notes, :created_by)
+        ");
+        $mov->execute([
+            ':item_id' => $itemId,
+            ':quantity' => $qtyToReturn,
+            ':reference_id' => $orderId,
+            ':notes' => 'Devolución automática por anulación de orden antes de cocción',
+            ':created_by' => $userId
+        ]);
+    }
+
+    $audit = $pdo->prepare("
+        INSERT INTO inventory_audit_log
+        (entity_type, entity_id, action, before_data, after_data, user_id)
+        VALUES ('orders_clientes', :entity_id, 'return_bom', NULL, :after_data, :user_id)
+    ");
+    $audit->execute([
+        ':entity_id' => $orderId,
+        ':after_data' => json_encode($required, JSON_UNESCAPED_UNICODE),
+        ':user_id' => $userId
+    ]);
 }
 
 try {
@@ -228,19 +309,33 @@ try {
 
         case 'PUT':
             parse_str(file_get_contents("php://input"), $data);
+
             $orderId = isset($data['order_id']) ? (int)$data['order_id'] : 0;
             $newStatus = trim($data['payment_status'] ?? '');
+            $newKitchenStatus = trim($data['kitchen_status'] ?? '');
             $userId = isset($data['user_id']) ? (int)$data['user_id'] : null;
 
-            if (!$orderId || $newStatus === '') {
+            if (!$orderId) {
                 http_response_code(422);
-                echo json_encode(['error' => 'order_id y payment_status requeridos'], JSON_UNESCAPED_UNICODE);
+                echo json_encode(['error' => 'order_id requerido'], JSON_UNESCAPED_UNICODE);
                 break;
             }
 
-            if (!isValidOrderStatus($newStatus)) {
+            if ($newStatus === '' && $newKitchenStatus === '') {
                 http_response_code(422);
-                echo json_encode(['error' => 'Estado inválido'], JSON_UNESCAPED_UNICODE);
+                echo json_encode(['error' => 'payment_status o kitchen_status requerido'], JSON_UNESCAPED_UNICODE);
+                break;
+            }
+
+            if ($newStatus !== '' && !isValidOrderStatus($newStatus)) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Estado de pago inválido'], JSON_UNESCAPED_UNICODE);
+                break;
+            }
+
+            if ($newKitchenStatus !== '' && !isValidKitchenStatus($newKitchenStatus)) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Estado de cocina inválido'], JSON_UNESCAPED_UNICODE);
                 break;
             }
 
@@ -259,25 +354,69 @@ try {
                 throw new Exception('Orden no encontrada');
             }
 
-            $stmt = $pdo->prepare("
-                UPDATE orders_clientes
-                SET payment_status = :payment_status
-                WHERE order_id = :order_id
-            ");
-            $stmt->execute([
-                ':payment_status' => $newStatus,
-                ':order_id' => $orderId
-            ]);
+            $currentStatus = $order['payment_status'];
 
-            if ($newStatus === 'pagada') {
+            if ($newStatus !== '') {
+                $upd = $pdo->prepare("
+                    UPDATE orders_clientes
+                    SET payment_status = :payment_status
+                    WHERE order_id = :order_id
+                ");
+                $upd->execute([
+                    ':payment_status' => $newStatus,
+                    ':order_id' => $orderId
+                ]);
+            }
+
+            if ($newKitchenStatus !== '') {
+                if ($order['payment_status'] !== 'pagada' && $newKitchenStatus !== 'pendiente') {
+                    throw new Exception('Solo las órdenes pagadas pueden pasar a cocina');
+                }
+
+                $updKitchen = $pdo->prepare("
+                    UPDATE orders_clientes
+                    SET kitchen_status = :kitchen_status
+                    WHERE order_id = :order_id
+                ");
+                $updKitchen->execute([
+                    ':kitchen_status' => $newKitchenStatus,
+                    ':order_id' => $orderId
+                ]);
+            }
+
+            if ($newStatus === 'pagada' && $currentStatus !== 'pagada') {
                 $invoiceId = createInvoiceForClientOrder($pdo, $order);
-                $updInv = $pdo->prepare("UPDATE orders_clientes SET invoice_id = :invoice_id WHERE order_id = :order_id");
+                $updInv = $pdo->prepare("
+                    UPDATE orders_clientes
+                    SET invoice_id = :invoice_id
+                    WHERE order_id = :order_id
+                ");
                 $updInv->execute([
                     ':invoice_id' => $invoiceId,
                     ':order_id' => $orderId
                 ]);
 
                 consumirInsumosPorOrdenCliente($pdo, $orderId, $userId);
+
+                $updKitchen = $pdo->prepare("
+                    UPDATE orders_clientes
+                    SET kitchen_status = 'pendiente'
+                    WHERE order_id = :order_id
+                ");
+                $updKitchen->execute([':order_id' => $orderId]);
+            }
+
+            if ($newStatus === 'anulada') {
+                if ($order['payment_status'] === 'pagada') {
+                    devolverInsumosPorOrdenCliente($pdo, $orderId, $userId);
+                }
+
+                $updKitchen = $pdo->prepare("
+                    UPDATE orders_clientes
+                    SET kitchen_status = 'cancelado'
+                    WHERE order_id = :order_id
+                ");
+                $updKitchen->execute([':order_id' => $orderId]);
             }
 
             $pdo->commit();
