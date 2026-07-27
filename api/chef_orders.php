@@ -36,43 +36,50 @@ function getOrderItems(PDO $pdo, int $orderId): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-function ensureNotificationTable(PDO $pdo): void {
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS order_notifications (
-            notification_id INT AUTO_INCREMENT PRIMARY KEY,
-            order_id INT NOT NULL,
-            user_id INT NOT NULL,
-            message VARCHAR(255) NOT NULL,
-            type VARCHAR(50) NOT NULL DEFAULT 'info',
-            is_read TINYINT(1) NOT NULL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ");
-}
-
-function insertNotification(PDO $pdo, int $orderId, int $userId, string $message, string $type = 'info'): void {
+function insertAlert(PDO $pdo, int $orderId, int $userId, string $message): void {
     $stmt = $pdo->prepare("
-        INSERT INTO order_notifications (order_id, user_id, message, type, is_read)
-        VALUES (:order_id, :user_id, :message, :type, 0)
+        INSERT INTO order_alerts (order_id, user_id, message, seen, created_at)
+        VALUES (:order_id, :user_id, :message, 0, CURRENT_TIMESTAMP)
     ");
     $stmt->execute([
         ':order_id' => $orderId,
         ':user_id' => $userId,
-        ':message' => $message,
-        ':type' => $type,
+        ':message' => $message
     ]);
 }
 
-function getAssignedMinutes(?string $assignedAt): int {
-    if (!$assignedAt) return 0;
-    $ts = strtotime($assignedAt);
+function minutesSince(?string $dateTime): int {
+    if (!$dateTime) return 0;
+    $ts = strtotime($dateTime);
     if ($ts === false) return 0;
     return (int)floor((time() - $ts) / 60);
 }
 
-try {
-    ensureNotificationTable($pdo);
+function maybeInsertDelayAlert(PDO $pdo, int $orderId, int $userId, ?string $assignedAt, int $delayedNotified): bool {
+    if (!$assignedAt) return false;
+    if ($delayedNotified === 1) return false;
 
+    $elapsedMinutes = minutesSince($assignedAt);
+    if ($elapsedMinutes <= 20) return false;
+
+    insertAlert(
+        $pdo,
+        $orderId,
+        $userId,
+        'Disculpe la tardanza hemos tenido ligeras complicaciones en su preparación'
+    );
+
+    $upd = $pdo->prepare("
+        UPDATE orders_clientes
+        SET delayed_notified = 1
+        WHERE order_id = :order_id
+    ");
+    $upd->execute([':order_id' => $orderId]);
+
+    return true;
+}
+
+try {
     if ($method === 'GET') {
         $action = $_GET['action'] ?? 'pending';
         $chefUserId = isset($_GET['chef_user_id']) ? (int)$_GET['chef_user_id'] : 0;
@@ -88,6 +95,7 @@ try {
                     o.kitchen_status,
                     o.chef_user_id,
                     o.assigned_at,
+                    o.delayed_notified,
                     o.created_at,
                     COALESCE(SUM(oi.quantity), 0) AS total_items,
                     COUNT(oi.order_item_id) AS items_count
@@ -115,6 +123,7 @@ try {
                     o.kitchen_status,
                     o.chef_user_id,
                     o.assigned_at,
+                    o.delayed_notified,
                     o.cooked_at,
                     o.served_at,
                     o.created_at,
@@ -145,6 +154,7 @@ try {
                     o.kitchen_status,
                     o.chef_user_id,
                     o.assigned_at,
+                    o.delayed_notified,
                     o.cooked_at,
                     o.served_at,
                     o.created_at,
@@ -170,7 +180,8 @@ try {
                     order_id, user_id, invoice_id, order_number, order_type,
                     payment_status, currency, payment_method, subtotal, tax_total,
                     discount_total, total, created_at, updated_at,
-                    kitchen_status, cooked_at, served_at, assigned_at, chef_user_id, kitchen_notes
+                    kitchen_status, cooked_at, chef_user_id, served_at,
+                    kitchen_notes, assigned_at, delayed_notified
                 FROM orders_clientes
                 WHERE order_id = :order_id
                 LIMIT 1
@@ -207,7 +218,7 @@ try {
         $pdo->beginTransaction();
 
         $stmt = $pdo->prepare("
-            SELECT order_id, user_id, payment_status, kitchen_status, chef_user_id, assigned_at
+            SELECT order_id, user_id, payment_status, kitchen_status, chef_user_id, assigned_at, delayed_notified
             FROM orders_clientes
             WHERE order_id = :order_id
             FOR UPDATE
@@ -241,6 +252,7 @@ try {
                 SET kitchen_status = 'en_cocina',
                     chef_user_id = :chef_user_id,
                     assigned_at = NOW(),
+                    delayed_notified = 0,
                     kitchen_notes = CASE
                         WHEN :kitchen_notes = '' THEN kitchen_notes
                         ELSE :kitchen_notes
@@ -253,6 +265,8 @@ try {
                 ':kitchen_notes' => $notes,
                 ':order_id' => $orderId
             ]);
+
+            insertAlert($pdo, $orderId, (int)$order['user_id'], 'su orden ya esta en cocina');
 
             $pdo->commit();
             respond(['success' => true, 'message' => 'Orden asignada al chef']);
@@ -279,6 +293,7 @@ try {
                 SET kitchen_status = 'pendiente',
                     chef_user_id = NULL,
                     assigned_at = NULL,
+                    delayed_notified = 0,
                     kitchen_notes = CASE
                         WHEN :kitchen_notes = '' THEN kitchen_notes
                         ELSE :kitchen_notes
@@ -316,6 +331,7 @@ try {
                 SET kitchen_status = 'en_cocina',
                     chef_user_id = COALESCE(chef_user_id, :chef_user_id),
                     assigned_at = COALESCE(assigned_at, NOW()),
+                    delayed_notified = COALESCE(delayed_notified, 0),
                     kitchen_notes = CASE
                         WHEN :kitchen_notes = '' THEN kitchen_notes
                         ELSE :kitchen_notes
@@ -328,6 +344,10 @@ try {
                 ':kitchen_notes' => $notes,
                 ':order_id' => $orderId
             ]);
+
+            if (!$order['assigned_at']) {
+                insertAlert($pdo, $orderId, (int)$order['user_id'], 'su orden ya esta en cocina');
+            }
 
             $pdo->commit();
             respond(['success' => true, 'message' => 'Orden en preparación']);
@@ -349,9 +369,6 @@ try {
                 respond(['success' => false, 'error' => 'Solo puedes culminar una orden en cocina'], 422);
             }
 
-            $elapsedMinutes = getAssignedMinutes($order['assigned_at']);
-            $isDelayed = $elapsedMinutes > 20;
-
             $upd = $pdo->prepare("
                 UPDATE orders_clientes
                 SET kitchen_status = 'cocinado',
@@ -368,31 +385,10 @@ try {
                 ':order_id' => $orderId
             ]);
 
-            if ($isDelayed) {
-                insertNotification(
-                    $pdo,
-                    $orderId,
-                    (int)$order['user_id'],
-                    'Disculpe la tardanza hemos tenido ligeras complicaciones en su preparación',
-                    'delay'
-                );
-            }
-
-            insertNotification(
-                $pdo,
-                $orderId,
-                (int)$order['user_id'],
-                'su orden esta lista',
-                'ready'
-            );
+            insertAlert($pdo, $orderId, (int)$order['user_id'], 'su orden esta lista');
 
             $pdo->commit();
-            respond([
-                'success' => true,
-                'message' => 'Orden culminada',
-                'elapsed_minutes' => $elapsedMinutes,
-                'delayed' => $isDelayed
-            ]);
+            respond(['success' => true, 'message' => 'Orden culminada']);
         }
 
         if ($action === 'deliver') {
