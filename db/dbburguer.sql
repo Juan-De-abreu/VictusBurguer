@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 21-07-2026 a las 22:26:15
+-- Tiempo de generación: 27-07-2026 a las 03:59:41
 -- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
@@ -511,22 +511,27 @@ CREATE TABLE IF NOT EXISTS `orders_clientes` (
   `chef_user_id` int DEFAULT NULL,
   `served_at` datetime DEFAULT NULL,
   `kitchen_notes` text COLLATE utf8mb4_spanish2_ci,
+  `assigned_at` datetime DEFAULT NULL,
+  `delayed_notified` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`order_id`),
   UNIQUE KEY `uq_order_number` (`order_number`),
   KEY `idx_user` (`user_id`),
-  KEY `idx_invoice` (`invoice_id`)
+  KEY `idx_invoice` (`invoice_id`),
+  KEY `idx_kitchen_status` (`kitchen_status`),
+  KEY `idx_chef_user_id` (`chef_user_id`),
+  KEY `idx_payment_status` (`payment_status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 --
 -- Volcado de datos para la tabla `orders_clientes`
 --
 
-INSERT INTO `orders_clientes` (`order_id`, `user_id`, `invoice_id`, `order_number`, `order_type`, `payment_status`, `currency`, `payment_method`, `subtotal`, `tax_total`, `discount_total`, `total`, `created_at`, `updated_at`, `kitchen_status`, `cooked_at`, `chef_user_id`, `served_at`, `kitchen_notes`) VALUES
-(1, 1, 1, 'ORD-C-0001', 'income', 'pagada', 'USD', 'pagomovil', 22.00, 3.52, 0.00, 25.52, '2026-05-01 14:15:00', '2026-07-21 21:37:21', 'pendiente', NULL, 13, NULL, NULL),
-(2, 2, 2, 'ORD-C-0002', 'income', 'pendiente', 'VES', 'efectivo', 450.00, 72.00, 0.00, 522.00, '2026-05-02 15:20:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
-(3, 3, 3, 'ORD-C-0003', 'income', 'pagada', 'USD', 'zelle', 18.00, 2.88, 0.00, 20.88, '2026-05-03 18:05:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
-(4, 4, 4, 'ORD-C-0004', 'income', 'pagada', 'VES', 'tarjeta', 980.00, 156.80, 25.00, 1111.80, '2026-05-04 13:30:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL),
-(5, 5, 5, 'ORD-C-0005', 'income', 'rechazada', 'USD', 'paypal', 12.50, 2.00, 0.00, 14.50, '2026-05-05 21:40:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL);
+INSERT INTO `orders_clientes` (`order_id`, `user_id`, `invoice_id`, `order_number`, `order_type`, `payment_status`, `currency`, `payment_method`, `subtotal`, `tax_total`, `discount_total`, `total`, `created_at`, `updated_at`, `kitchen_status`, `cooked_at`, `chef_user_id`, `served_at`, `kitchen_notes`, `assigned_at`, `delayed_notified`) VALUES
+(1, 1, 1, 'ORD-C-0001', 'income', 'pagada', 'USD', 'pagomovil', 22.00, 3.52, 0.00, 25.52, '2026-05-01 14:15:00', '2026-07-27 02:04:39', 'cocinado', '2026-07-26 22:04:39', 13, NULL, NULL, '2026-07-26 22:04:22', 0),
+(2, 2, 2, 'ORD-C-0002', 'income', 'pendiente', 'VES', 'efectivo', 450.00, 72.00, 0.00, 522.00, '2026-05-02 15:20:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL, NULL, 0),
+(3, 3, 3, 'ORD-C-0003', 'income', 'pagada', 'USD', 'zelle', 18.00, 2.88, 0.00, 20.88, '2026-05-03 18:05:00', '2026-07-27 02:37:49', 'cocinado', '2026-07-26 22:37:49', 13, NULL, NULL, '2026-07-26 22:37:32', 0),
+(4, 4, 4, 'ORD-C-0004', 'income', 'pagada', 'VES', 'tarjeta', 980.00, 156.80, 25.00, 1111.80, '2026-05-04 13:30:00', '2026-07-27 02:04:08', 'pendiente', NULL, NULL, NULL, NULL, NULL, 0),
+(5, 5, 5, 'ORD-C-0005', 'income', 'rechazada', 'USD', 'paypal', 12.50, 2.00, 0.00, 14.50, '2026-05-05 21:40:00', '2026-05-11 15:19:26', 'pendiente', NULL, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -569,6 +574,31 @@ INSERT INTO `orders_shop` (`shop_order_id`, `user_id`, `order_number`, `order_ty
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `order_alerts`
+--
+
+DROP TABLE IF EXISTS `order_alerts`;
+CREATE TABLE IF NOT EXISTS `order_alerts` (
+  `alert_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `message` text COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `seen` int NOT NULL,
+  PRIMARY KEY (`alert_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+--
+-- Volcado de datos para la tabla `order_alerts`
+--
+
+INSERT INTO `order_alerts` (`alert_id`, `order_id`, `user_id`, `message`, `created_at`, `seen`) VALUES
+(1, 3, 3, 'su orden ya esta en cocina', '2026-07-27 02:37:32', 0),
+(2, 3, 3, 'su orden esta lista', '2026-07-27 02:37:49', 0);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `order_items_clientes`
 --
 
@@ -601,6 +631,32 @@ INSERT INTO `order_items_clientes` (`order_item_id`, `order_id`, `product_id`, `
 (8, 4, 8, 'BBQ Bacon Burguer', 2, 11.50, 23.00),
 (9, 4, 5, 'Crispy Chicken Sandwich', 3, 9.00, 27.00),
 (10, 5, 10, 'Perro Caliente Especial', 3, 4.00, 12.00);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `order_notifications`
+--
+
+DROP TABLE IF EXISTS `order_notifications`;
+CREATE TABLE IF NOT EXISTS `order_notifications` (
+  `notification_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `message` varchar(255) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `type` varchar(50) COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'info',
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`notification_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+--
+-- Volcado de datos para la tabla `order_notifications`
+--
+
+INSERT INTO `order_notifications` (`notification_id`, `order_id`, `user_id`, `message`, `type`, `is_read`, `created_at`) VALUES
+(1, 1, 1, 'Disculpe la tardanza hemos tenido ligeras complicaciones en su preparación', 'delay', 0, '2026-07-27 02:04:39'),
+(2, 1, 1, 'su orden esta lista', 'ready', 0, '2026-07-27 02:04:39');
 
 -- --------------------------------------------------------
 
@@ -782,7 +838,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `rol` int NOT NULL DEFAULT '1',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 
 --
 -- Volcado de datos para la tabla `users`
@@ -801,7 +857,8 @@ INSERT INTO `users` (`user_id`, `nombre`, `email`, `password`, `telefono`, `crea
 (10, 'Sofía Castro', 'sofia.castro@gmail.com', '$2b$10$EpOuJdQa...HASH_SIMULADO_DE_123456', '0416-0001122', '2026-01-20 14:10:46', 0),
 (11, 'juan jose de abreu diaz', 'juanadmin@gmail.com', '$2y$12$FkhiRv6HXyACNuR5woZI5ulMgdhp/M6qkK1/nFkUeUovzghJkg6S.', '+58 4144145969', '2026-03-03 17:48:42', 4),
 (12, 'Juan De abreu', 'juancliente@gmail.com', '$2y$12$/.rb5BNksrFd0QmPdaGfnuBF73IGFoTF8/LMG8XnodHU86nE.QBd.', '+58 4144145969', '2026-03-30 00:26:01', 0),
-(13, 'juan chef de abreu', 'juanchef@gmail.com', '$2y$12$AbxIjnXwmrav/V56qJrs9u9PhGWQETnn/fpnb53/JVBsBD2IKHqDq', '+58 4144145969', '2026-07-21 18:52:05', 2);
+(13, 'juan chef de abreu', 'juanchef@gmail.com', '$2y$12$AbxIjnXwmrav/V56qJrs9u9PhGWQETnn/fpnb53/JVBsBD2IKHqDq', '+58 4144145969', '2026-07-21 18:52:05', 2),
+(14, 'juan contador de abreu', 'juancontador@gmail.com', '$2y$12$TFwbEJ/qz7XyGU3gSTBq3edzCvM6tnwxbF36g4g7Zd8dszCuCotnm', '+58 4144145969', '2026-07-27 01:44:02', 3);
 
 --
 -- Restricciones para tablas volcadas
