@@ -27,7 +27,6 @@ import Favorites from "./Pages/Favorites";
 import InventarioResumido from "./Pages/Dashboard/Inventarioresumido";
 import PedidosCulminados from "./Pages/Dashboard/Pedidosculminados";
 import PedidosPendientes from "./Pages/Dashboard/PedidosPendientes";
-import MisPedidoschef from "./Pages/Dashboard/MisPedidoschef";
 
 // Layouts
 const PublicLayout = ({ children }) => (
@@ -73,7 +72,6 @@ function App() {
                 <Route path="inventariochef" element={<RoleProtectedRoute allowedRoles={[2]}><InventarioResumido /></RoleProtectedRoute>} />
                 <Route path="pedidos-culminados" element={<RoleProtectedRoute allowedRoles={[2,1]}><PedidosCulminados /></RoleProtectedRoute>} />
                 <Route path="pedidos-pendientes" element={<RoleProtectedRoute allowedRoles={[2]}><PedidosPendientes /></RoleProtectedRoute>} />
-                <Route path="mis-pedidos" element={<RoleProtectedRoute allowedRoles={[2]}><MisPedidoschef /></RoleProtectedRoute>} />
 
                 <Route path="ajustes-de-cuenta" element={<RoleProtectedRoute allowedRoles={[1,2,3,4]}><AjustesPersonal /></RoleProtectedRoute>} />
                 {/* ADMIN SOLO (ID 4) y (ID 3) contador */}

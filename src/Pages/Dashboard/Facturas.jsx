@@ -15,7 +15,6 @@ const Facturas = () => {
   });
   const [bcvRate, setBcvRate] = useState(0);
   const [savingStatusId, setSavingStatusId] = useState(null);
-  const [deletingFixedCostId, setDeletingFixedCostId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
 
@@ -31,13 +30,13 @@ const Facturas = () => {
   });
 
   const formatBs = (value) =>
-    `Bs. ${Number(value || 0).toLocaleString("es-VE", { maximumFractionDigits: 2 })}`;
+    `Bs. ${Number(value || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const formatMoney = (value, currency = "USD") => {
     const num = Number(value || 0);
     return currency === "USD"
-      ? `$${num.toLocaleString("es-VE")}`
-      : `Bs. ${num.toLocaleString("es-VE")}`;
+      ? `$${num.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : `Bs. ${num.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const pick = (...values) => {
@@ -48,7 +47,7 @@ const Facturas = () => {
   };
 
   const getRateForRecord = (item) => {
-    const rate = Number(item.exchange_rate || item.bcv_rate || item.rate || 0);
+    const rate = Number(item?.exchange_rate || item?.bcv_rate || item?.rate || 0);
     return rate > 0 ? rate : bcvRate || 1;
   };
 
@@ -75,7 +74,9 @@ const Facturas = () => {
       const data = await res.json();
       const rate = Number(data?.promedio || data?.venta || 0);
       if (rate > 0) setBcvRate(rate);
-    } catch {}
+    } catch (e) {
+      console.error("Error obteniendo tasa BCV:", e);
+    }
   };
 
   const fetchRecords = async () => {
@@ -256,39 +257,6 @@ const Facturas = () => {
     } finally {
       setSavingStatusId(null);
     }
-  };
-
-  const updateFixedCost = async (costId, payload) => {
-    const form = new URLSearchParams();
-    form.append("cost_id", costId);
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) form.append(key, value);
-    });
-
-    const res = await fetch(`${API_BASE_URL}/fixed_costs`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: form.toString(),
-    });
-
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || "No se pudo actualizar");
-    return data;
-  };
-
-  const deleteFixedCost = async (costId) => {
-    const form = new URLSearchParams();
-    form.append("cost_id", costId);
-
-    const res = await fetch(`${API_BASE_URL}/fixed_costs`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: form.toString(),
-    });
-
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || "No se pudo eliminar");
-    return data;
   };
 
   useEffect(() => {
@@ -495,25 +463,25 @@ const Facturas = () => {
   };
 
   return (
-    <div className="space-y-8 w-full max-w-full overflow-x-hidden">
-      <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">📋 Facturación y Movimientos</h1>
+    <div className="space-y-8 w-full max-w-full overflow-x-hidden px-2 sm:px-4">
+      <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight break-words">📋 Facturación y Movimientos</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10 min-w-0">
           <p className="text-sm text-gray-300">Ingresos</p>
-          <p className="text-3xl font-black text-green-400">{formatBs(totals.income)}</p>
+          <p className="text-2xl sm:text-3xl font-black text-green-400 truncate">{formatBs(totals.income)}</p>
         </div>
-        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10 min-w-0">
           <p className="text-sm text-gray-300">Egresos</p>
-          <p className="text-3xl font-black text-red-400">{formatBs(totals.expense)}</p>
+          <p className="text-2xl sm:text-3xl font-black text-red-400 truncate">{formatBs(totals.expense)}</p>
         </div>
-        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10">
+        <div className="rounded-3xl bg-[var(--body)] p-5 shadow-xl border border-white/10 min-w-0">
           <p className="text-sm text-gray-300">Total neto</p>
-          <p className={`text-3xl font-black ${totals.net >= 0 ? "text-green-400" : "text-red-400"}`}>{formatBs(totals.net)}</p>
+          <p className={`text-2xl sm:text-3xl font-black truncate ${totals.net >= 0 ? "text-green-400" : "text-red-400"}`}>{formatBs(totals.net)}</p>
         </div>
       </div>
 
-      <div className="flex justify-between bg-[var(--body)] p-4 rounded-3xl shadow-lg flex-wrap gap-4">
+      <div className="flex justify-between items-center bg-[var(--body)] p-4 rounded-3xl shadow-lg flex-wrap gap-4 min-w-0">
         <div className="flex flex-wrap gap-3">
           {[
             { key: "all", label: "Ambos" },
@@ -548,7 +516,7 @@ const Facturas = () => {
           {visibleFilterOptions.map((item, idx) => (
             <span key={idx} className="flex items-center gap-2 bg-red-800/90 shadow-md shadow-black px-4 py-2 rounded-full text-sm font-semibold text-white max-w-full">
               <span className="truncate">{item.label}</span>
-              <button onClick={() => clearOne(item.key, item.value)} className="text-red-300 font-black">
+              <button onClick={() => clearOne(item.key, item.value)} className="text-red-300 font-black hover:text-white">
                 ×
               </button>
             </span>
@@ -556,12 +524,12 @@ const Facturas = () => {
         </div>
       )}
 
-      <div className="bg-[var(--body)] p-5 sm:p-6 rounded-3xl shadow-xl space-y-5 max-w-full overflow-hidden">
+      <div className="bg-[var(--body)] p-5 sm:p-6 rounded-3xl shadow-xl space-y-5 max-w-full overflow-hidden min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={filters.searchField}
             onChange={(e) => setFilters((prev) => ({ ...prev, searchField: e.target.value, searchValue: "" }))}
-            className="px-4 py-3 rounded-2xl border border-gray-300 bg-[var(--body)] text-white w-full"
+            className="px-4 py-3 rounded-2xl border border-gray-300 bg-[var(--body)] text-white w-full min-w-0"
           >
             <option value="">Elegir filtro de búsqueda</option>
             <option value="customer_name">Nombre</option>
@@ -578,28 +546,28 @@ const Facturas = () => {
               value={filters.searchValue}
               onChange={(e) => setFilters((prev) => ({ ...prev, searchValue: e.target.value }))}
               placeholder="Escribe para buscar"
-              className="px-4 py-3 rounded-2xl border border-gray-300 w-full"
+              className="px-4 py-3 rounded-2xl border border-gray-300 w-full min-w-0 text-gray-900"
             />
           )}
 
-          <div className="grid grid-cols-2 gap-3 md:col-span-2">
-            <input type="date" value={filters.dateFrom} onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full" />
-            <input type="date" value={filters.dateTo} onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:col-span-2">
+            <input type="date" value={filters.dateFrom} onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full min-w-0 text-gray-900" />
+            <input type="date" value={filters.dateTo} onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))} className="px-4 py-3 rounded-2xl border border-gray-300 w-full min-w-0 text-gray-900" />
           </div>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <button onClick={() => toggleCurrency("USD")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("USD") ? "bg-green-700 text-white" : "bg-[var(--body)]"}`}>USD</button>
-          <button onClick={() => toggleCurrency("VES")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("VES") ? "bg-red-800 text-white" : "bg-[var(--body)]"}`}>VES</button>
+          <button onClick={() => toggleCurrency("USD")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("USD") ? "bg-green-700 text-white" : "bg-[var(--body)] text-white"}`}>USD</button>
+          <button onClick={() => toggleCurrency("VES")} className={`px-4 py-2 rounded-xl border text-sm ${filters.currencies.includes("VES") ? "bg-red-800 text-white" : "bg-[var(--body)] text-white"}`}>VES</button>
 
-          <button onClick={() => togglePaymentStatus("pagada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pagada") ? "bg-green-700 text-white" : "bg-[var(--body)]"}`}>Pagada</button>
-          <button onClick={() => togglePaymentStatus("pendiente")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pendiente") ? "bg-amber-700 text-white" : "bg-[var(--body)]"}`}>Pendiente</button>
-          <button onClick={() => togglePaymentStatus("anulada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("anulada") ? "bg-gray-700 text-white" : "bg-[var(--body)]"}`}>Anulada</button>
+          <button onClick={() => togglePaymentStatus("pagada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pagada") ? "bg-green-700 text-white" : "bg-[var(--body)] text-white"}`}>Pagada</button>
+          <button onClick={() => togglePaymentStatus("pendiente")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("pendiente") ? "bg-amber-700 text-white" : "bg-[var(--body)] text-white"}`}>Pendiente</button>
+          <button onClick={() => togglePaymentStatus("anulada")} className={`px-4 py-2 rounded-xl border text-sm ${filters.paymentStatuses.includes("anulada") ? "bg-gray-700 text-white" : "bg-[var(--body)] text-white"}`}>Anulada</button>
 
-          <button onClick={() => toggleRecordType("empleados")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("empleados") ? "bg-blue-700 text-white" : "bg-[var(--body)]"}`}>Empleados</button>
-          <button onClick={() => toggleRecordType("fixed_costs")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("fixed_costs") ? "bg-orange-700 text-white" : "bg-[var(--body)]"}`}>Costos fijos</button>
-          <button onClick={() => toggleRecordType("orders")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("orders") ? "bg-red-700 text-white" : "bg-[var(--body)]"}`}>Órdenes</button>
-          <button onClick={() => toggleRecordType("inventory")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("inventory") ? "bg-purple-700 text-white" : "bg-[var(--body)]"}`}>Inventario</button>
+          <button onClick={() => toggleRecordType("empleados")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("empleados") ? "bg-blue-700 text-white" : "bg-[var(--body)] text-white"}`}>Empleados</button>
+          <button onClick={() => toggleRecordType("fixed_costs")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("fixed_costs") ? "bg-orange-700 text-white" : "bg-[var(--body)] text-white"}`}>Costos fijos</button>
+          <button onClick={() => toggleRecordType("orders")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("orders") ? "bg-red-700 text-white" : "bg-[var(--body)] text-white"}`}>Órdenes</button>
+          <button onClick={() => toggleRecordType("inventory")} className={`px-4 py-2 rounded-xl border text-sm ${filters.recordTypes.includes("inventory") ? "bg-purple-700 text-white" : "bg-[var(--body)] text-white"}`}>Inventario</button>
         </div>
       </div>
 
@@ -607,20 +575,19 @@ const Facturas = () => {
         {loading ? (
           <div className="p-8 text-center text-white">Cargando registros...</div>
         ) : error ? (
-          <div className="p-8 text-center text-red-600">{error}</div>
+          <div className="p-8 text-center text-red-400">{error}</div>
         ) : filteredRecords.length === 0 ? (
           <div className="p-8 text-center text-white">No hay registros</div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px]">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-[var(--body)] text-white border-b border-white/20 sticky top-0 z-10">
                   <tr>
                     <th className="p-4 text-left font-bold">Tipo</th>
                     <th className="p-4 text-left font-bold">Referencia</th>
                     <th className="p-4 text-left font-bold">Nombre / CI</th>
                     <th className="p-4 text-left font-bold">Fecha</th>
-                    <th className="p-4 text-left font-bold">Moneda</th>
                     <th className="p-4 text-right font-bold">Total</th>
                     <th className="p-4 text-center font-bold">Estado</th>
                     <th className="p-4 text-center font-bold">Ver</th>
@@ -635,18 +602,17 @@ const Facturas = () => {
                     const amountBs = toBolivares(amount, item.currency || "USD", rate);
 
                     return (
-                      <tr key={`${item.source_entity}-${item.source_id}`} className={`border-t hover:bg-[var(--body2)]/95 bg-[var(--body)] transition text-white ${getRowColor(item)}`}>
+                      <tr key={`${item.source_entity}-${item.source_id}`} className={`border-t border-white/10 hover:bg-white/5 transition text-white ${getRowColor(item)}`}>
                         <td className="p-4 text-sm sm:text-base">{getSourceLabel(item)}</td>
                         <td className="p-4 font-mono text-sm sm:text-base">{item.reference || item.invoice_number || item.order_number || item.cost_name || "N/D"}</td>
-                        <td className="p-4 text-sm sm:text-base">
-                          <div className="font-semibold">{getRowClientName(item)}</div>
-                          <div className="text-xs text-gray-400">CI: {getRowCedula(item)}</div>
+                        <td className="p-4 text-sm sm:text-base max-w-[200px]">
+                          <div className="font-semibold truncate">{getRowClientName(item)}</div>
+                          <div className="text-xs text-gray-400 truncate">CI/RIF: {getRowCedula(item)}</div>
                         </td>
                         <td className="p-4 text-sm sm:text-base">{(item.record_date || item.issue_date || item.created_at || item.paid_at || item.due_date || "").slice(0, 10)}</td>
-                        <td className="p-4 text-sm sm:text-base">{item.currency || "USD"}</td>
                         <td className="p-4 text-right font-bold text-sm sm:text-base">
-                          {formatMoney(amount, item.currency || "USD")}
-                          <div className="text-xs text-gray-400">{formatBs(amountBs)}</div>
+                          <div>{formatMoney(amount, item.currency || "USD")}</div>
+                          <div className="text-xs text-gray-400 font-normal">{formatBs(amountBs)}</div>
                         </td>
                         <td className="p-4 text-center">
                           {editable ? (
@@ -675,7 +641,7 @@ const Facturas = () => {
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border-t border-white/10 text-white">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-gray-300">Filas por página:</span>
                 <input
                   type="number"
@@ -687,192 +653,246 @@ const Facturas = () => {
                     setRowsPerPage(value);
                     setCurrentPage(1);
                   }}
-                  className="w-24 px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white"
+                  className="w-20 px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white"
                 />
                 <span className="text-sm text-gray-400">Total: {filteredRecords.length} registros</span>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Inicio</button>
-                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] border border-white/10 disabled:opacity-50">Inicio</button>
+                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-2 rounded-xl bg-[var(--body2)] border border-white/10 disabled:opacity-50">Anterior</button>
                 <span className="px-3 py-2 text-sm">{currentPage} / {totalPages}</span>
-                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Siguiente</button>
-                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] disabled:opacity-50">Final</button>
+                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] border border-white/10 disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="px-3 py-2 rounded-xl bg-[var(--body2)] border border-white/10 disabled:opacity-50">Fin</button>
               </div>
             </div>
           </>
         )}
       </div>
 
+      {/* Modal de Detalle con Información Fiscal y Legal Completa */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4">
-          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[var(--body)] text-white shadow-2xl border border-white/10">
-            <div className="flex items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-white/10">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-[var(--body)] border border-white/20 rounded-3xl p-4 sm:p-6 w-full max-w-3xl text-white space-y-6 shadow-2xl my-auto max-h-[90vh] overflow-y-auto">
+            {/* Cabecera del Modal / Datos del Documento Legal */}
+            <div className="flex justify-between items-start gap-4 border-b border-white/10 pb-4">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black">Detalle del registro</h2>
-                <p className="text-sm text-gray-300 break-words">{getModalTitle()}</p>
+                <span className="text-xs uppercase tracking-widest text-red-400 font-bold block">
+                  {getSourceLabel(selectedRecord)} - Documento Fiscal
+                </span>
+                <h2 className="text-xl sm:text-3xl font-black break-words">
+                  {getModalTitle()}
+                </h2>
               </div>
               <button
-                onClick={() => {
-                  setSelectedRecord(null);
-                  setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: null });
-                }}
-                className="px-4 py-2 rounded-xl bg-red-100 text-red-700 font-bold hover:bg-red-200 shrink-0"
+                onClick={() => setSelectedRecord(null)}
+                className="text-gray-400 hover:text-white text-3xl font-black p-1 leading-none"
               >
-                Cerrar
+                ×
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 space-y-6">
-              {selectedDetails.loading ? (
-                <div className="text-center text-white py-10">Cargando detalle...</div>
-              ) : selectedDetails.error ? (
-                <div className="text-center text-red-400 py-10">{selectedDetails.error}</div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="rounded-2xl bg-black/20 p-5">
-                      <p className="text-sm text-gray-300 mb-2">Información principal</p>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="text-gray-400">Tipo:</span> {selectedRecord.source_entity || "N/D"}</p>
-                        <p><span className="text-gray-400">Referencia:</span> {pick(selectedRecord.reference, selectedRecord.invoice_number, selectedRecord.order_number, selectedRecord.cost_name)}</p>
-                        <p><span className="text-gray-400">Moneda:</span> {selectedRecord.currency || "USD"}</p>
-                        <p><span className="text-gray-400">Estado:</span> {selectedRecord.status || selectedRecord.invoice_status || selectedRecord.payment_status || "pendiente"}</p>
-                        <p><span className="text-gray-400">Total:</span> {formatBs(toBolivares(selectedRecord.total || selectedRecord.amount || 0, selectedRecord.currency || "USD", getRateForRecord(selectedRecord)))}</p>
-
-                        {(selectedRecord.source_entity === "orders_clientes" || selectedRecord.source_entity === "payments_personal") && (
-                          <div className="pt-3">
-                            <p className="text-gray-400 mb-2">Actualizar estado del origen</p>
-                            <select
-                              value={selectedRecord.payment_status || selectedRecord.status || "pendiente"}
-                              onChange={(e) => updateOriginStatus(selectedRecord, e.target.value)}
-                              disabled={savingStatusId === selectedRecord.source_id}
-                              className="px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white w-full"
-                            >
-                              <option value="pendiente">pendiente</option>
-                              <option value="pagada">pagada</option>
-                              <option value="rechazada">rechazada</option>
-                              <option value="anulada">anulada</option>
-                            </select>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-black/20 p-5">
-                      <p className="text-sm text-gray-300 mb-2">Factura vinculada</p>
-                      {selectedDetails.invoice ? (
-                        <div className="space-y-2 text-sm">
-                          <p><span className="text-gray-400">Número:</span> {selectedDetails.invoice.invoice_number || "N/D"}</p>
-                          <p><span className="text-gray-400">Control:</span> {selectedDetails.invoice.control_number || "N/D"}</p>
-                          <p><span className="text-gray-400">Estado:</span> {selectedDetails.invoice.status || "emitida"}</p>
-                          <p><span className="text-gray-400">Subtotal:</span> {formatMoney(selectedDetails.invoice.subtotal || 0, selectedDetails.invoice.currency || "USD")}</p>
-                          <p><span className="text-gray-400">Total:</span> {formatMoney(selectedDetails.invoice.total || 0, selectedDetails.invoice.currency || "USD")}</p>
-                        </div>
-                      ) : (
-                        <p className="text-gray-400 text-sm">No hay factura vinculada.</p>
+            {selectedDetails.loading ? (
+              <div className="py-12 text-center text-gray-300 font-semibold">Cargando información fiscal...</div>
+            ) : selectedDetails.error ? (
+              <div className="py-12 text-center text-red-400 font-bold">{selectedDetails.error}</div>
+            ) : (
+              <div className="space-y-6 text-sm">
+                
+                {/* Bloque 1: Identificación Legal y Fiscal del Registro */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Receptor / Razon Social</span>
+                    <span className="font-bold text-base break-words">
+                      {pick(
+                        selectedRecord.customer_name,
+                        selectedRecord.client_name,
+                        selectedRecord.employee_name,
+                        selectedRecord.user_nombre,
+                        selectedRecord.cost_name,
+                        selectedDetails.extra?.customer_name,
+                        selectedDetails.extra?.user_nombre
                       )}
-                    </div>
+                    </span>
                   </div>
 
-                  {selectedRecord.source_entity === "orders_shop" && (
-                    <div className="rounded-2xl bg-black/20 p-5">
-                      <p className="text-sm text-gray-300 mb-2">Orden inventario</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        <p><span className="text-gray-400">Usuario:</span> {pick(selectedDetails.extra?.user_nombre, selectedDetails.extra?.nombre, selectedDetails.extra?.name)}</p>
-                        <p><span className="text-gray-400">Correo:</span> {pick(selectedDetails.extra?.user_email, selectedDetails.extra?.email)}</p>
-                        <p><span className="text-gray-400">Teléfono:</span> {pick(selectedDetails.extra?.user_telefono, selectedDetails.extra?.telefono)}</p>
-                        <p><span className="text-gray-400">Rol:</span> {pick(selectedDetails.extra?.user_rol, selectedDetails.extra?.rol)}</p>
-                        <p><span className="text-gray-400">Orden:</span> {pick(selectedDetails.extra?.order_number, selectedDetails.extra?.shop_order_id)}</p>
-                        <p><span className="text-gray-400">Estado:</span> {pick(selectedDetails.extra?.payment_status, selectedDetails.extra?.status, "pendiente")}</p>
-                        <p><span className="text-gray-400">Fecha:</span> {pick(selectedDetails.extra?.updated_at, selectedDetails.extra?.created_at).toString().slice(0, 10)}</p>
-                        <p><span className="text-gray-400">Total:</span> {formatMoney(selectedDetails.extra?.total || 0, selectedDetails.extra?.currency || "USD")}</p>
-                      </div>
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">RIF / Cédula Identidad</span>
+                    <span className="font-mono font-bold text-base">
+                      {pick(
+                        selectedRecord.customer_cedula,
+                        selectedRecord.employee_cedula,
+                        selectedRecord.cedula,
+                        selectedDetails.extra?.customer_cedula,
+                        selectedDetails.extra?.cedula
+                      )}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Estado de Pago</span>
+                    <span className="inline-block mt-1 px-3 py-1 rounded-full text-xs font-black uppercase bg-white/10 border border-white/20">
+                      {selectedRecord.payment_status || selectedRecord.status || "N/D"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">N° Factura / Control</span>
+                    <span className="font-mono font-bold">
+                      {pick(selectedRecord.invoice_number, selectedRecord.control_number, selectedRecord.reference)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">N° de Orden</span>
+                    <span className="font-mono">
+                      {pick(selectedRecord.order_number, selectedRecord.shop_order_id)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Tasa de Cambio (BCV)</span>
+                    <span className="font-semibold text-green-400">
+                      Bs. {getRateForRecord(selectedRecord)} / USD
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Fecha Emisión</span>
+                    <span className="font-semibold">
+                      {(selectedRecord.record_date || selectedRecord.issue_date || selectedRecord.created_at || "").slice(0, 10) || "N/D"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Fecha Vencimiento</span>
+                    <span className="font-semibold">
+                      {(selectedRecord.due_date || selectedRecord.next_due_date || "").slice(0, 10) || "N/D"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 block text-xs font-semibold uppercase">Método de Pago</span>
+                    <span className="font-semibold capitalize">
+                      {pick(selectedRecord.payment_method, selectedDetails.extra?.payment_method, "N/D")}
+                    </span>
+                  </div>
+
+                  {(selectedRecord.address || selectedDetails.extra?.address) && (
+                    <div className="sm:col-span-2 md:col-span-3">
+                      <span className="text-gray-400 block text-xs font-semibold uppercase">Domicilio Fiscal</span>
+                      <span className="font-medium break-words">
+                        {pick(selectedRecord.address, selectedDetails.extra?.address)}
+                      </span>
                     </div>
                   )}
+                </div>
 
-                  {selectedRecord.source_entity === "fixed_costs" && (
-                    <div className="rounded-2xl bg-black/20 p-5 space-y-5">
-                      <p className="text-sm text-gray-300 mb-2">Costo fijo recurrente</p>
+                {/* Bloque 2: Tabla de Detalles y Conceptos Facturados */}
+                {selectedDetails.items && selectedDetails.items.length > 0 ? (
+                  <div className="space-y-3">
+                    <h3 className="font-bold text-base text-gray-200">Conceptos / Detalle de Ítems</h3>
+                    <div className="overflow-x-auto border border-white/10 rounded-2xl">
+                      <table className="w-full text-left border-collapse min-w-[500px]">
+                        <thead className="bg-white/10 text-xs font-bold uppercase tracking-wider text-gray-300">
+                          <tr>
+                            <th className="p-3">Descripción</th>
+                            <th className="p-3 text-center">Cant.</th>
+                            <th className="p-3 text-right">P. Unitario</th>
+                            <th className="p-3 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/10">
+                          {selectedDetails.items.map((item, idx) => {
+                            const qty = Number(item.quantity || item.cantidad || 1);
+                            const price = Number(item.price || item.precio_unitario || item.unit_price || 0);
+                            const itemTotal = qty * price;
+                            return (
+                              <tr key={idx} className="hover:bg-white/5 transition">
+                                <td className="p-3 break-words font-medium">{item.name || item.descripcion || item.product_name || "N/D"}</td>
+                                <td className="p-3 text-center font-mono">{qty}</td>
+                                <td className="p-3 text-right font-mono">{formatMoney(price, selectedRecord.currency || "USD")}</td>
+                                <td className="p-3 text-right font-mono font-bold">{formatMoney(itemTotal, selectedRecord.currency || "USD")}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-gray-400 text-center italic">
+                    Este movimiento no posee ítems individualizados registrados.
+                  </div>
+                )}
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        <p><span className="text-gray-400">Nombre:</span> {selectedDetails.extra?.cost_name || "N/D"}</p>
-                        <p><span className="text-gray-400">Categoría:</span> {selectedDetails.extra?.cost_category || "N/D"}</p>
-                        <p><span className="text-gray-400">Proveedor:</span> {selectedDetails.extra?.supplier_name || "N/D"}</p>
-                        <p><span className="text-gray-400">Factura:</span> {selectedDetails.extra?.invoice_number || "N/D"}</p>
-                        <p><span className="text-gray-400">Estado:</span> {selectedDetails.extra?.payment_status || "N/D"}</p>
-                        <p><span className="text-gray-400">Vencimiento:</span> {selectedDetails.extra?.due_date || "N/D"}</p>
-                        <p><span className="text-gray-400">Pagado:</span> {selectedDetails.extra?.paid_date || "N/D"}</p>
-                        <p><span className="text-gray-400">Monto:</span> {formatMoney(selectedDetails.extra?.amount || 0, selectedDetails.extra?.currency || "USD")}</p>
-                      </div>
+                {/* Bloque 3: Desglose Impositivo Legales y Totales Duales */}
+                {(() => {
+                  const rate = getRateForRecord(selectedRecord);
+                  const currency = selectedRecord.currency || "USD";
+                  const total = Number(selectedRecord.total || selectedRecord.amount || 0);
+                  
+                  // Asumiendo cálculo impositivo legal (IVA 16% Venezuela)
+                  const taxRate = 0.16;
+                  const baseAmount = total / (1 + taxRate);
+                  const taxAmount = total - baseAmount;
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-sm text-gray-300 mb-2 block">Cambiar estado</label>
-                          <select
-                            value={selectedDetails.extra?.payment_status || "pendiente"}
-                            onChange={async (e) => {
-                              try {
-                                setSavingStatusId(selectedRecord.source_id);
-                                await updateFixedCost(selectedRecord.source_id, { payment_status: e.target.value });
-                                await fetchRecords();
-                                await fetchDetails(selectedRecord);
-                              } catch (err) {
-                                alert(err.message);
-                              } finally {
-                                setSavingStatusId(null);
-                              }
-                            }}
-                            disabled={savingStatusId === selectedRecord.source_id}
-                            className="px-3 py-2 rounded-xl bg-[var(--body)] border border-white/20 text-white w-full"
-                          >
-                            <option value="pendiente">pendiente</option>
-                            <option value="pagada">pagada</option>
-                            <option value="anulada">anulada</option>
-                          </select>
+                  const totalBs = toBolivares(total, currency, rate);
+                  const baseBs = toBolivares(baseAmount, currency, rate);
+                  const taxBs = toBolivares(taxAmount, currency, rate);
+
+                  return (
+                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-3">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-gray-400 border-b border-white/10 pb-2">
+                        Resumen Fiscal y Totales Duales
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 text-xs text-gray-300">
+                          <div className="flex justify-between">
+                            <span>Base Imponible:</span>
+                            <span className="font-mono font-semibold">{formatMoney(baseAmount, currency)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>IVA (16%):</span>
+                            <span className="font-mono font-semibold">{formatMoney(taxAmount, currency)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-bold text-white pt-1 border-t border-white/10">
+                            <span>Total ({currency}):</span>
+                            <span className="font-mono">{formatMoney(total, currency)}</span>
+                          </div>
                         </div>
 
-                        <div className="flex items-end">
-                          <button
-                            onClick={async () => {
-                              if (!window.confirm("¿Seguro que deseas borrar este costo fijo?")) return;
-                              try {
-                                setDeletingFixedCostId(selectedRecord.source_id);
-                                await deleteFixedCost(selectedRecord.source_id);
-                                setSelectedRecord(null);
-                                setSelectedDetails({ invoice: null, items: [], loading: false, error: "", extra: null });
-                                await fetchRecords();
-                              } catch (err) {
-                                alert(err.message);
-                              } finally {
-                                setDeletingFixedCostId(null);
-                              }
-                            }}
-                            disabled={deletingFixedCostId === selectedRecord.source_id}
-                            className="w-full px-4 py-3 rounded-xl bg-red-700 text-white font-bold hover:bg-red-800 disabled:opacity-60"
-                          >
-                            {deletingFixedCostId === selectedRecord.source_id ? "Borrando..." : "Borrar costo fijo"}
-                          </button>
+                        {/* Conversión Legal Obligatoria a Bolívares */}
+                        <div className="space-y-1.5 text-xs text-gray-300 bg-black/20 p-3 rounded-xl border border-white/5">
+                          <div className="flex justify-between">
+                            <span>Base Imponible (VES):</span>
+                            <span className="font-mono font-semibold">{formatBs(baseBs)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>IVA 16% (VES):</span>
+                            <span className="font-mono font-semibold">{formatBs(taxBs)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-black text-green-400 pt-1 border-t border-white/10">
+                            <span>Total en Bolívares:</span>
+                            <span className="font-mono">{formatBs(totalBs)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  )}
+                  );
+                })()}
 
-                  {selectedRecord.source_entity === "payments_personal" && (
-                    <div className="rounded-2xl bg-black/20 p-5">
-                      <p className="text-sm text-gray-300 mb-2">Datos del pago</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        <p><span className="text-gray-400">Empleado:</span> {selectedDetails.extra?.employee_name || "N/D"}</p>
-                        <p><span className="text-gray-400">Cédula:</span> {selectedDetails.extra?.employee_cedula || "N/D"}</p>
-                        <p><span className="text-gray-400">Rol:</span> {selectedDetails.extra?.role_name || "N/D"}</p>
-                        <p><span className="text-gray-400">Tipo:</span> {selectedDetails.extra?.payment_type || "N/D"}</p>
-                        <p><span className="text-gray-400">Método:</span> {selectedDetails.extra?.payment_method || "N/D"}</p>
-                        <p><span className="text-gray-400">Fecha pago:</span> {selectedDetails.extra?.paid_at || "N/D"}</p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+              </div>
+            )}
+
+            {/* Acciones Footer */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              <button
+                onClick={() => setSelectedRecord(null)}
+                className="px-6 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold transition shadow-lg text-sm"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

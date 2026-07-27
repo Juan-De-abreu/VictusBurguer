@@ -20,9 +20,8 @@ const chefUserId = user?.user_id || user?.id;
       title: "👨‍🍳 Chef", 
       items: [
         { path: '/dashboard/pedidos-pendientes', label: ' Pendientes', icon: '⏳' },
-        { path: '/dashboard/mis-pedidos', label: ' Tus Pedidos', icon: '📋' },
         { path: '/dashboard/pedidos-culminados', label: ' Pedidos culminados', icon: '✅' },
-        { path: '/dashboard/inventariochef', label: ' InventarioResumido', icon: '📦' }
+        { path: '/dashboard/inventariochef', label: ' Inventario resumido', icon: '📦' }
       ]
     },
     3: { 
