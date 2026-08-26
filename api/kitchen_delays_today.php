@@ -55,4 +55,3 @@ try {
 } catch (Throwable $e) {
     json_response(false, null, $e->getMessage(), 500);
 }
-?>
