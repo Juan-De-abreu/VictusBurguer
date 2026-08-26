@@ -134,7 +134,7 @@ const Critico = () => {
   return (
     <div className="min-h-screen p-6">
       <h1 className="text-4xl font-black text-white mb-8 text-center">
-        ⚠️ Panel Crítico - Semana
+        ⚠️ Panel Crítico
       </h1>
 
       {/* BOTONES PRINCIPALES */}
@@ -172,7 +172,7 @@ const Critico = () => {
       </div>
 
       {/* TARDANZAS SEMANA */}
-      <section id="tardanzas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+      <section id="tardanzas-section" className="bg-[var(--primario)]/90 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6 flex items-center">
           🕒 Tardanzas Semanales
           {newDelaysCount > 10 && (
@@ -183,7 +183,7 @@ const Critico = () => {
         </h2>
 
         {delaysWeek.length === 0 ? (
-          <p className="text-white/70 text-lg">✅ Sin tardanzas registradas.</p>
+          <p className="text-white text-lg">✅ Sin tardanzas registradas.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {delaysWeek.map((d) => (
@@ -204,11 +204,11 @@ const Critico = () => {
       </section>
 
       {/* INVENTARIO CRÍTICO */}
-      <section id="inventario-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+      <section id="inventario-section" className="bg-[var(--primario)]/90 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6">📦 Inventario Crítico</h2>
 
         {stockCritico.length === 0 ? (
-          <p className="text-white/70 text-lg">✅ Todo el inventario está en niveles normales.</p>
+          <p className="text-white text-lg">✅ Todo el inventario está en niveles normales.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {stockCritico.map((item) => (
@@ -234,11 +234,11 @@ const Critico = () => {
       </section>
 
       {/* VENTAS BAJAS SEMANA */}
-      <section id="ventas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+      <section id="ventas-section" className="bg-[var(--primario)]/90 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6">📉 Ventas Bajas Semana</h2>
 
         {lowSalesWeek.length === 0 ? (
-          <p className="text-white/70 text-lg">✅ Todos los productos tienen ventas normales.</p>
+          <p className="text-white text-lg">✅ Todos los productos tienen ventas normales.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {lowSalesWeek.map((item) => (
@@ -259,11 +259,11 @@ const Critico = () => {
       </section>
 
       {/* QUEJAS SEMANA */}
-      <section id="quejas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+      <section id="quejas-section" className="bg-[var(--primario)]/90 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6">⚠️ Quejas / Reportes</h2>
 
         {complaintsWeek.length === 0 ? (
-          <p className="text-white/70 text-lg">✅ Sin quejas registradas.</p>
+          <p className="text-white text-lg">✅ Sin quejas registradas.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {complaintsWeek.map((c) => (
@@ -284,11 +284,11 @@ const Critico = () => {
       </section>
 
       {/* INGREDIENTES FALTANTES */}
-      <section id="ingredientes-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+      <section id="ingredientes-section" className="bg-[var(--primario)]/90 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6">🥗 Ingredientes Faltantes</h2>
 
         {missingIngredients.length === 0 ? (
-          <p className="text-white/70 text-lg">✅ Todos los ingredientes están disponibles.</p>
+          <p className="text-white text-lg">✅ Todos los ingredientes están disponibles.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {missingIngredients.map((item, idx) => (
@@ -320,7 +320,7 @@ const Critico = () => {
       {selectedIngredient && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button onClick={() => setSelectedIngredient(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => setSelectedIngredient(null)} className="absolute top-4 right-4 text-white hover:text-white text-2xl">✕</button>
             <h3 className="text-3xl font-black text-white mb-6">🥗 {selectedIngredient.product_name}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Ingrediente:</strong> {selectedIngredient.ingredient_name}</p>
@@ -340,7 +340,7 @@ const Critico = () => {
       {selectedDelay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button onClick={() => setSelectedDelay(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => setSelectedDelay(null)} className="absolute top-4 right-4 text-white hover:text-white text-2xl">✕</button>
             <h3 className="text-3xl font-black text-white mb-6">🕒 {selectedDelay.date}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Tardanzas:</strong> {selectedDelay.delay_count}</p>
@@ -354,7 +354,7 @@ const Critico = () => {
       {selectedStock && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button onClick={() => setSelectedStock(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => setSelectedStock(null)} className="absolute top-4 right-4 text-white hover:text-white text-2xl">✕</button>
             <h3 className="text-3xl font-black text-white mb-6">📦 {selectedStock.product_name}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Categoría:</strong> {selectedStock.category || 'N/A'}</p>
@@ -376,7 +376,7 @@ const Critico = () => {
       {selectedSale && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button onClick={() => setSelectedSale(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => setSelectedSale(null)} className="absolute top-4 right-4 text-white hover:text-white text-2xl">✕</button>
             <h3 className="text-3xl font-black text-white mb-6">📉 {selectedSale.product_name}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Fecha:</strong> {selectedSale.date}</p>
@@ -397,7 +397,7 @@ const Critico = () => {
       {selectedComplaint && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button onClick={() => setSelectedComplaint(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => setSelectedComplaint(null)} className="absolute top-4 right-4 text-white hover:text-white text-2xl">✕</button>
             <h3 className="text-3xl font-black text-white mb-6">⚠️ Orden #{selectedComplaint.order_number}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Tipo:</strong> {selectedComplaint.complaint_type}</p>
