@@ -6,6 +6,7 @@
     <title>Victu's API - Docs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -167,11 +168,188 @@
             </div>
         </div>
 
-        <!-- INVENTARIO 🆕 DESARROLLO -->
+        <!-- INVENTARIO CRÍTICO 🆕 FUNCIONAL -->
+        <div class="border-t border-[var(--border)] pt-12">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">⚠️</span>
+                Inventario Crítico
+            </h2>
+            
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/inventory_critical')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/inventory_critical</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/inventory_critical', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Productos con stock crítico o inexistente</strong> → Para página Crítico</div>
+                    <div class="text-sm mt-2" style="color: var(--text-secondary);">[{"item_id":1,"product_name":"Carne","stock_actual":0,"estado":"inexistente"},...]</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARDANZAS HOY 🆕 FUNCIONAL -->
+        <div class="border-t border-[var(--border)] pt-12">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">🕒</span>
+                Tardanzas Hoy
+            </h2>
+            
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/kitchen_delays_today?date=2026-08-25')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/kitchen_delays_today?date=YYYY-MM-DD</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/kitchen_delays_today?date=2026-08-25', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Órdenes con >20 min de retraso hoy</strong> → Para página Crítico</div>
+                    <div class="text-sm mt-2" style="color: var(--text-secondary);">[{"order_id":123,"order_number":"#ABC","elapsed_minutes":25},...]</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENTAS BAJAS HOY 🆕 FUNCIONAL -->
+        <div class="border-t border-[var(--border)] pt-12">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">📉</span>
+                Ventas Bajas Hoy
+            </h2>
+            
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/menu_low_sales_today?date=2026-08-25')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/menu_low_sales_today?date=YYYY-MM-DD</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/menu_low_sales_today?date=2026-08-25', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Productos con ≤1 venta hoy</strong> → Para página Crítico</div>
+                    <div class="text-sm mt-2" style="color: var(--text-secondary);">[{"product_id":5,"product_name":"Papas","sales_today":0},...]</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENOS VENDIDOS (HISTÓRICO) ✅ FUNCIONAL -->
+        <div class="border-t border-[var(--border)] pt-12">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">📊</span>
+                Menos Vendidos
+            </h2>
+            
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/least_sold_products')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/least_sold_products</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/least_sold_products', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Top 20 productos menos vendidos (histórico)</strong></div>
+                    <div class="text-sm mt-2" style="color: var(--text-secondary);">[{"product_id":5,"nombre":"Papas","total_sold":10},...]</div>
+                </div>
+            </div>
+
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/least_sold_products?date=2026-08-25')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/least_sold_products?date=YYYY-MM-DD</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/least_sold_products?date=2026-08-25', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Productos con ≤1 venta hoy (opcional con date)</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHEF ORDERS ✅ FUNCIONAL -->
+        <div class="border-t border-[var(--border)] pt-12">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">👨‍🍳</span>
+                Chef Orders
+            </h2>
+            
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/chef_orders?action=pending')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/chef_orders?action=pending</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/chef_orders?action=pending', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Órdenes pendientes de cocina</strong></div>
+                </div>
+            </div>
+
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/chef_orders?action=mine&chef_user_id=1')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/chef_orders?action=mine&chef_user_id=ID</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/chef_orders?action=mine&chef_user_id=1', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Órdenes asignadas a un chef</strong></div>
+                </div>
+            </div>
+
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/chef_orders?action=detail&order_id=123')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">GET</span>
+                        <code class="text-xl font-mono font-semibold">/api/chef_orders?action=detail&order_id=ID</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/chef_orders?action=detail&order_id=123', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div><strong>Detalle completo de una orden</strong></div>
+                </div>
+            </div>
+
+            <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/chef_orders', 'PUT')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <span class="method-badge">PUT</span>
+                        <code class="text-xl font-mono font-semibold">/api/chef_orders</code>
+                        <span class="status-badge status-funcional">✅ FUNCIONAL</span>
+                    </div>
+                    <button onclick="copy('/api/chef_orders', event)" class="px-3 py-1 bg-[var(--bg-secondary)] text-white rounded text-sm">📋</button>
+                </div>
+                <div class="ml-12">
+                    <div class="mb-3"><strong>Acciones: assign, start, complete, deliver, abandon, cancel_kitchen</strong></div>
+                    <div class="json-box p-4 mb-2">
+<pre>{
+  "order_id": 123,
+  "action": "assign",
+  "chef_user_id": 1
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVENTARIO GENERAL 🔨 DESARROLLO -->
         <div class="border-t border-[var(--border)] pt-12">
             <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
                 <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">📦</span>
-                Inventario
+                Inventario General
             </h2>
             
             <div class="endpoint-item p-6 rounded-lg border border-[var(--border)] mb-6 cursor-pointer hover:border-[var(--accent)]" onclick="open('/api/inventory')">
@@ -211,7 +389,7 @@
             </div>
         </div>
 
-        <!-- TAREAS 🆕 DESARROLLO -->
+        <!-- TAREAS 🔨 DESARROLLO -->
         <div class="border-t border-[var(--border)] pt-12">
             <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
                 <span class="w-10 h-10 bg-[var(--accent)] text-white rounded-lg flex items-center justify-center text-lg font-bold">📋</span>
@@ -332,7 +510,13 @@
 
     <script>
         const BASE = 'http://localhost:8081/victus-backend';
-        function open(endpoint) { window.open(BASE + endpoint, '_blank'); }
+        function open(endpoint, method = 'GET') {
+            if (method === 'PUT') {
+                alert('Este endpoint usa método PUT. Usa Postman o similar para probarlo.');
+                return;
+            }
+            window.open(BASE + endpoint, '_blank');
+        }
         function copy(endpoint, e) {
             e.stopPropagation();
             navigator.clipboard.writeText(BASE + endpoint).then(() => {

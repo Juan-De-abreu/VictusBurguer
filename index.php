@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// index.php - API GATEWAY v3.0
+// index.php - API GATEWAY v3.2
 // Victu's Burgers Backend
 
 $allowedOrigins = [
@@ -71,33 +71,25 @@ $resource = $segments[1] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
 $routes = [
+    // Autenticación y Usuarios
     'auth' => __DIR__ . '/api/auth.php',
     'users' => __DIR__ . '/api/users.php',
     'favorites' => __DIR__ . '/api/favorites.php',
+    'addresses' => __DIR__ . '/api/addresses.php',
+    
+    // Productos y Menú
     'products' => __DIR__ . '/api/products.php',
     'categories' => __DIR__ . '/api/categories.php',
-    'addresses' => __DIR__ . '/api/addresses.php',
-    'drivers' => __DIR__ . '/api/drivers.php',
-    'payments' => __DIR__ . '/api/payments.php',
-    'orders' => __DIR__ . '/api/orders.php',
-    'order_items' => __DIR__ . '/api/order_items.php',
-    'invoices' => __DIR__ . '/api/invoices.php',
-    'invoice_download' => __DIR__ . '/api/invoice_download.php',
-    'orders_clientes' => __DIR__ . '/api/orders_clientes.php',
-    'orders_shop' => __DIR__ . '/api/orders_shop.php',
-    'order_items_clientes' => __DIR__ . '/api/order_items_clientes.php',
-    'shop_order_items' => __DIR__ . '/api/shop_order_items.php',
-    'payments_personal' => __DIR__ . '/api/payments_personal.php',
     'top_products' => __DIR__ . '/api/top_products.php',
     'least_sold_products' => __DIR__ . '/api/least_sold_products.php',
+    'menu_low_sales_today' => __DIR__ . '/api/menu_low_sales_today.php',
+    'menu_low_sales_week' => __DIR__ . '/api/menu_low_sales_week.php',
+    'toggle-availability' => __DIR__ . '/api/toggle_availability.php',
+    'menu_ajustes' => __DIR__ . '/api/menu_ajustes.php',
+    
+    // Inventario
     'inventory' => __DIR__ . '/api/inventory.php',
     'inventory_critical' => __DIR__ . '/api/inventory_critical.php',
-    'kitchen_delays_today' => __DIR__ . '/api/kitchen_delays_today.php',
-    'menu_low_sales_today' => __DIR__ . '/api/menu_low_sales_today.php',
-    'fixed_costs' => __DIR__ . '/api/fixed_costs.php',
-    'dashboard_records' => __DIR__ . '/api/dashboard_records.php',
-    'chef_orders' => __DIR__ . '/api/chef_orders.php',
-    'kitchen' => __DIR__ . '/api/kitchen.php',
     'inventory_movements' => __DIR__ . '/api/inventory_movements.php',
     'inventory_alerts' => __DIR__ . '/api/inventory_alerts.php',
     'inventory_counts' => __DIR__ . '/api/inventory_counts.php',
@@ -105,7 +97,34 @@ $routes = [
     'inventory_locations' => __DIR__ . '/api/inventory_locations.php',
     'inventory_reservations' => __DIR__ . '/api/inventory_reservations.php',
     'inventory_settings' => __DIR__ . '/api/inventory_settings.php',
-    'inventory_audit_log' => __DIR__ . '/api/inventory_audit_log.php'
+    'inventory_audit_log' => __DIR__ . '/api/inventory_audit_log.php',
+    'product_ingredients_check' => __DIR__ . '/api/product_ingredients_check.php',
+    
+    // Órdenes y Pedidos
+    'orders' => __DIR__ . '/api/orders.php',
+    'order_items' => __DIR__ . '/api/order_items.php',
+    'orders_clientes' => __DIR__ . '/api/orders_clientes.php',
+    'orders_shop' => __DIR__ . '/api/orders_shop.php',
+    'order_items_clientes' => __DIR__ . '/api/order_items_clientes.php',
+    'shop_order_items' => __DIR__ . '/api/shop_order_items.php',
+    'chef_orders' => __DIR__ . '/api/chef_orders.php',
+    'kitchen_delays_today' => __DIR__ . '/api/kitchen_delays_today.php',
+    'kitchen_delays_week' => __DIR__ . '/api/kitchen_delays_week.php',
+    
+    // Pagos y Facturas
+    'payments' => __DIR__ . '/api/payments.php',
+    'payments_personal' => __DIR__ . '/api/payments_personal.php',
+    'invoices' => __DIR__ . '/api/invoices.php',
+    'invoice_download' => __DIR__ . '/api/invoice_download.php',
+    
+    // Dashboard y Reportes
+    'fixed_costs' => __DIR__ . '/api/fixed_costs.php',
+    'dashboard_records' => __DIR__ . '/api/dashboard_records.php',
+    'kitchen' => __DIR__ . '/api/kitchen.php',
+    'complaints_week' => __DIR__ . '/api/complaints_week.php',
+    
+    // Drivers
+    'drivers' => __DIR__ . '/api/drivers.php'
 ];
 
 if (isset($routes[$resource]) && file_exists($routes[$resource])) {
@@ -113,19 +132,10 @@ if (isset($routes[$resource]) && file_exists($routes[$resource])) {
     exit;
 }
 
+// Handlers para endpoints sin archivo dedicado
 switch ($resource) {
-    case 'inventory':
-        handleInventory();
-        break;
     case 'tasks':
         handleTasks();
-        break;
-    case 'toggle-availability':
-        if ($method === 'POST') {
-            handleToggleAvailability();
-        } else {
-            errorMethod();
-        }
         break;
     default:
         errorNotFound(array_keys($routes));
@@ -144,23 +154,11 @@ function errorNotFound(array $resources): void
         'success' => false,
         'error' => 'Endpoint no encontrado',
         'docs' => '/api/',
-        'disponibles' => array_values($resources)
+        'disponibles' => $resources
     ], JSON_UNESCAPED_UNICODE);
 }
 
-function handleInventory(): void
-{
-    http_response_code(501);
-    echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);
-}
-
 function handleTasks(): void
-{
-    http_response_code(501);
-    echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);
-}
-
-function handleToggleAvailability(): void
 {
     http_response_code(501);
     echo json_encode(['success' => false, 'error' => 'handler pendiente'], JSON_UNESCAPED_UNICODE);

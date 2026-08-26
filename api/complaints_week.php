@@ -1,11 +1,10 @@
 <?php
-declare(strict_types=1);
 require_once __DIR__ . '/../config/database.php';
-
-header('Content-Type: application/json; charset=utf-8');
 
 $db = new Database();
 $pdo = $db->connect();
+
+header('Content-Type: application/json; charset=utf-8');
 
 try {
     $start_date = $_GET['start_date'] ?? null;
@@ -24,17 +23,22 @@ try {
 
     $sql = "
         SELECT
-            DATE(o.created_at) AS date,
-            COUNT(*) AS delay_count,
-            AVG(TIMESTAMPDIFF(MINUTE, o.assigned_at, NOW())) AS avg_delay_minutes
-        FROM orders_clientes o
-        WHERE DATE(o.created_at) BETWEEN :start_date AND :end_date
-          AND o.payment_status = 'pagada'
-          AND o.kitchen_status IN ('pendiente', 'en_cocina')
-          AND o.assigned_at IS NOT NULL
-          AND TIMESTAMPDIFF(MINUTE, o.assigned_at, NOW()) > 20
-        GROUP BY DATE(o.created_at)
-        ORDER BY date ASC
+            c.complaint_id,
+            c.order_id,
+            c.user_id,
+            c.tipo AS complaint_type,
+            c.descripcion,
+            c.severidad,
+            c.estado,
+            c.created_at,
+            o.order_number,
+            u.nombre AS user_name,
+            u.email AS user_email
+        FROM complaints c
+        LEFT JOIN orders_clientes o ON o.order_id = c.order_id
+        LEFT JOIN users u ON u.user_id = c.user_id
+        WHERE DATE(c.created_at) BETWEEN :start_date AND :end_date
+        ORDER BY c.created_at DESC
     ";
 
     $stmt = $pdo->prepare($sql);
@@ -43,7 +47,7 @@ try {
 
     echo json_encode(['success' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
 
-} catch (Throwable $e) {
+} catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'Error al obtener quejas semanales']);
 }
