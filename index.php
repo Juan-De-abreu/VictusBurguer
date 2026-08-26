@@ -45,6 +45,30 @@ $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $uri = trim(str_replace($basePath, '', $requestPath), '/');
 $segments = $uri === '' ? [] : explode('/', $uri);
 
+// ✅ SERVIDOR DE IMÁGENES - Si es uploads, servir directamente
+if ($segments[0] === 'uploads' && count($segments) >= 2) {
+    $imagePath = implode('/', $segments);
+    $fullPath = __DIR__ . '/' . $imagePath;
+    
+    // Sanitizar ruta
+    $realPath = realpath($fullPath);
+    $uploadsDir = realpath(__DIR__ . '/uploads');
+    
+    if ($realPath && $uploadsDir && strpos($realPath, $uploadsDir) === 0 && file_exists($fullPath) && is_file($fullPath)) {
+        $mimeType = mime_content_type($fullPath);
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . filesize($fullPath));
+        header('Cache-Control: public, max-age=31536000');
+        header('Access-Control-Allow-Origin: *');
+        readfile($fullPath);
+        exit;
+    }
+    
+    http_response_code(404);
+    echo json_encode(['error' => 'Imagen no encontrada']);
+    exit;
+}
+
 if (!file_exists(__DIR__ . '/config/database.php')) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Database config missing'], JSON_UNESCAPED_UNICODE);
@@ -85,7 +109,6 @@ $routes = [
     'menu_low_sales_today' => __DIR__ . '/api/menu_low_sales_today.php',
     'menu_low_sales_week' => __DIR__ . '/api/menu_low_sales_week.php',
     'toggle-availability' => __DIR__ . '/api/toggle_availability.php',
-    'menu_ajustes' => __DIR__ . '/api/menu_ajustes.php',
     
     // Inventario
     'inventory' => __DIR__ . '/api/inventory.php',
