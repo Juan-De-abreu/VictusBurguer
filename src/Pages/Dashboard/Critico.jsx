@@ -2,45 +2,65 @@ import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../config/api';
 
 const Critico = () => {
-  const [delays, setDelays] = useState([]);
+  const [delaysWeek, setDelaysWeek] = useState([]);
   const [stockCritico, setStockCritico] = useState([]);
-  const [lowSales, setLowSales] = useState([]);
+  const [lowSalesWeek, setLowSalesWeek] = useState([]);
+  const [complaintsWeek, setComplaintsWeek] = useState([]);
+  const [missingIngredients, setMissingIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedDelay, setSelectedDelay] = useState(null);
   const [selectedStock, setSelectedStock] = useState(null);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
 
   const [newDelaysCount, setNewDelaysCount] = useState(0);
   const [newStockCount, setNewStockCount] = useState(0);
   const [newSalesCount, setNewSalesCount] = useState(0);
+  const [newComplaintsCount, setNewComplaintsCount] = useState(0);
+  const [newIngredientsCount, setNewIngredientsCount] = useState(0);
 
   const today = new Date().toISOString().slice(0, 10);
+  const lastWeek = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [delaysRes, stockRes, salesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/kitchen_delays_today?date=${today}`),
+        const [delaysRes, stockRes, salesRes, complaintsRes, ingredientsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/kitchen_delays_week?start_date=${lastWeek}&end_date=${today}`),
           fetch(`${API_BASE_URL}/inventory_critical`),
-          fetch(`${API_BASE_URL}/menu_low_sales_today?date=${today}`)
+          fetch(`${API_BASE_URL}/menu_low_sales_week?start_date=${lastWeek}&end_date=${today}`),
+          fetch(`${API_BASE_URL}/complaints_week?start_date=${lastWeek}&end_date=${today}`),
+          fetch(`${API_BASE_URL}/product_ingredients_check`)
         ]);
 
         const delaysData = await delaysRes.json();
         const stockData = await stockRes.json();
         const salesData = await salesRes.json();
+        const complaintsData = await complaintsRes.json();
+        const ingredientsData = await ingredientsRes.json();
 
         const delaysArr = delaysData.data || [];
         const stockArr = stockData.data || [];
         const salesArr = salesData.data || [];
+        const complaintsArr = complaintsData.data || [];
+        const ingredientsArr = ingredientsData.data || [];
 
-        setNewDelaysCount(delaysArr.length);
+        const totalDelays = delaysArr.reduce((sum, d) => sum + (d.delay_count || 0), 0);
+        const totalSales = salesArr.length;
+
+        setNewDelaysCount(totalDelays);
         setNewStockCount(stockArr.length);
-        setNewSalesCount(salesArr.length);
+        setNewSalesCount(totalSales);
+        setNewComplaintsCount(complaintsArr.length);
+        setNewIngredientsCount(ingredientsArr.length);
 
-        setDelays(delaysArr);
+        setDelaysWeek(delaysArr);
         setStockCritico(stockArr);
-        setLowSales(salesArr);
+        setLowSalesWeek(salesArr);
+        setComplaintsWeek(complaintsArr);
+        setMissingIngredients(ingredientsArr);
       } catch (e) {
         console.error(e);
       } finally {
@@ -49,7 +69,7 @@ const Critico = () => {
     };
 
     fetchAll();
-  }, [today]);
+  }, [today, lastWeek]);
 
   const handleOpenDelay = (item) => {
     setSelectedDelay(item);
@@ -64,6 +84,16 @@ const Critico = () => {
   const handleOpenSale = (item) => {
     setSelectedSale(item);
     setNewSalesCount(0);
+  };
+
+  const handleOpenComplaint = (item) => {
+    setSelectedComplaint(item);
+    setNewComplaintsCount(0);
+  };
+
+  const handleOpenIngredient = (item) => {
+    setSelectedIngredient(item);
+    setNewIngredientsCount(0);
   };
 
   const ButtonCritico = ({ label, count, onClick, color }) => {
@@ -102,13 +132,13 @@ const Critico = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--body)] p-6">
+    <div className="min-h-screen p-6">
       <h1 className="text-4xl font-black text-white mb-8 text-center">
-        ⚠️ Panel Crítico
+        ⚠️ Panel Crítico - Semana
       </h1>
 
       {/* BOTONES PRINCIPALES */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 max-w-7xl mx-auto">
         <ButtonCritico
           label="🕒 Tardanzas"
           count={newDelaysCount}
@@ -116,44 +146,56 @@ const Critico = () => {
           color="bg-gradient-to-br from-red-600 to-red-800 text-white"
         />
         <ButtonCritico
-          label="📦 Inventario Crítico"
+          label="📦 Inventario"
           count={newStockCount}
           onClick={() => document.getElementById('inventario-section')?.scrollIntoView({ behavior: 'smooth' })}
           color="bg-gradient-to-br from-amber-600 to-amber-800 text-white"
         />
         <ButtonCritico
-          label="📉 Ventas Bajas"
+          label="📉 Ventas"
           count={newSalesCount}
           onClick={() => document.getElementById('ventas-section')?.scrollIntoView({ behavior: 'smooth' })}
           color="bg-gradient-to-br from-blue-600 to-blue-800 text-white"
         />
+        <ButtonCritico
+          label="⚠️ Quejas"
+          count={newComplaintsCount}
+          onClick={() => document.getElementById('quejas-section')?.scrollIntoView({ behavior: 'smooth' })}
+          color="bg-gradient-to-br from-purple-600 to-purple-800 text-white"
+        />
+        <ButtonCritico
+          label="🥗 Ingredientes"
+          count={newIngredientsCount}
+          onClick={() => document.getElementById('ingredientes-section')?.scrollIntoView({ behavior: 'smooth' })}
+          color="bg-gradient-to-br from-green-600 to-green-800 text-white"
+        />
       </div>
 
-      {/* TARDANZAS */}
+      {/* TARDANZAS SEMANA */}
       <section id="tardanzas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
         <h2 className="text-3xl font-black text-white mb-6 flex items-center">
-          🕒 Tardanzas hoy
-          {delays.length > 10 && (
+          🕒 Tardanzas Semanales
+          {newDelaysCount > 10 && (
             <span className="ml-4 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-lg animate-pulse">
-              ¡ALERTA! {delays.length}
+              ¡ALERTA! {newDelaysCount}
             </span>
           )}
         </h2>
 
-        {delays.length === 0 ? (
+        {delaysWeek.length === 0 ? (
           <p className="text-white/70 text-lg">✅ Sin tardanzas registradas.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {delays.map((d) => (
+            {delaysWeek.map((d) => (
               <button
-                key={d.order_id}
+                key={d.date}
                 onClick={() => handleOpenDelay(d)}
                 className="bg-white/10 hover:bg-white/20 p-4 rounded-2xl text-left transition-all duration-300 transform hover:scale-[1.02]"
               >
-                <p className="text-white font-bold text-lg">Orden #{d.order_number}</p>
-                <p className="text-white/80">{d.elapsed_minutes} min de retraso</p>
+                <p className="text-white font-bold text-lg">{d.date}</p>
+                <p className="text-white/80">{d.delay_count} tardanzas</p>
                 <p className="text-white/60 text-sm mt-2">
-                  Estado: {d.kitchen_status}
+                  Promedio: {Math.round(d.avg_delay_minutes)} min
                 </p>
               </button>
             ))}
@@ -191,24 +233,24 @@ const Critico = () => {
         )}
       </section>
 
-      {/* VENTAS BAJAS */}
+      {/* VENTAS BAJAS SEMANA */}
       <section id="ventas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
-        <h2 className="text-3xl font-black text-white mb-6">📉 Ventas Bajas Hoy</h2>
+        <h2 className="text-3xl font-black text-white mb-6">📉 Ventas Bajas Semana</h2>
 
-        {lowSales.length === 0 ? (
+        {lowSalesWeek.length === 0 ? (
           <p className="text-white/70 text-lg">✅ Todos los productos tienen ventas normales.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {lowSales.map((item) => (
+            {lowSalesWeek.map((item) => (
               <button
-                key={item.product_id}
+                key={`${item.product_id}-${item.date}`}
                 onClick={() => handleOpenSale(item)}
                 className="bg-blue-900/40 p-4 rounded-2xl text-left transition-all duration-300 transform hover:scale-[1.02]"
               >
                 <p className="text-white font-bold text-lg">{item.product_name}</p>
-                <p className="text-white/80">Ventas hoy: {item.sales_today}</p>
+                <p className="text-white/80">Fecha: {item.date}</p>
                 <p className="text-blue-300 text-sm mt-2 font-bold">
-                  {item.sales_today === 0 ? 'NO VENDIDO' : 'MUY BAJA ROTACIÓN'}
+                  Ventas: {item.sales_count}
                 </p>
               </button>
             ))}
@@ -216,27 +258,93 @@ const Critico = () => {
         )}
       </section>
 
+      {/* QUEJAS SEMANA */}
+      <section id="quejas-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+        <h2 className="text-3xl font-black text-white mb-6">⚠️ Quejas / Reportes</h2>
+
+        {complaintsWeek.length === 0 ? (
+          <p className="text-white/70 text-lg">✅ Sin quejas registradas.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {complaintsWeek.map((c) => (
+              <button
+                key={c.complaint_id}
+                onClick={() => handleOpenComplaint(c)}
+                className="bg-purple-900/40 p-4 rounded-2xl text-left transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                <p className="text-white font-bold text-lg">Orden #{c.order_number}</p>
+                <p className="text-white/80">{c.complaint_type}</p>
+                <p className="text-purple-300 text-sm mt-2 font-bold">
+                  Severidad: {c.severidad}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* INGREDIENTES FALTANTES */}
+      <section id="ingredientes-section" className="bg-[var(--primario)]/10 p-6 rounded-3xl shadow-xl mb-8">
+        <h2 className="text-3xl font-black text-white mb-6">🥗 Ingredientes Faltantes</h2>
+
+        {missingIngredients.length === 0 ? (
+          <p className="text-white/70 text-lg">✅ Todos los ingredientes están disponibles.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {missingIngredients.map((item, idx) => (
+              <button
+                key={`${item.product_id}-${item.item_id}-${idx}`}
+                onClick={() => handleOpenIngredient(item)}
+                className={`
+                  p-4 rounded-2xl text-left transition-all duration-300 transform hover:scale-[1.02]
+                  ${item.estado === 'inexistente' ? 'bg-red-900/40' : item.estado === 'insuficiente' ? 'bg-orange-900/40' : 'bg-green-900/40'}
+                `}
+              >
+                <p className="text-white font-bold text-lg">{item.product_name}</p>
+                <p className="text-white/80 text-sm">
+                  ❌ {item.ingredient_name}
+                </p>
+                <p className="text-white/60 text-xs mt-1">
+                  Requiere: {item.quantity_required} {item.ingredient_unit}
+                </p>
+                <p className={`text-sm mt-2 font-bold ${item.estado === 'inexistente' ? 'text-red-400' : item.estado === 'insuficiente' ? 'text-orange-400' : 'text-green-400'}`}>
+                  {item.estado.toUpperCase()}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* MODAL INGREDIENTE FALTANTE */}
+      {selectedIngredient && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
+            <button onClick={() => setSelectedIngredient(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <h3 className="text-3xl font-black text-white mb-6">🥗 {selectedIngredient.product_name}</h3>
+            <div className="space-y-4 text-white">
+              <p><strong>Ingrediente:</strong> {selectedIngredient.ingredient_name}</p>
+              <p><strong>Tipo:</strong> {selectedIngredient.ingredient_type}</p>
+              <p><strong>Requerido:</strong> {selectedIngredient.quantity_required} {selectedIngredient.ingredient_unit}</p>
+              <p><strong>Stock actual:</strong> {selectedIngredient.stock_actual} {selectedIngredient.ingredient_unit}</p>
+              <p><strong>Stock mínimo:</strong> {selectedIngredient.stock_min} {selectedIngredient.ingredient_unit}</p>
+              <p className={`font-bold text-xl ${selectedIngredient.estado === 'inexistente' ? 'text-red-400' : selectedIngredient.estado === 'insuficiente' ? 'text-orange-400' : 'text-green-400'}`}>
+                Estado: {selectedIngredient.estado.toUpperCase()}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL TARDANZA */}
       {selectedDelay && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button
-              onClick={() => setSelectedDelay(null)}
-              className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl"
-            >
-              ✕
-            </button>
-            <h3 className="text-3xl font-black text-white mb-6">
-              🕒 Orden #{selectedDelay.order_number}
-            </h3>
+            <button onClick={() => setSelectedDelay(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <h3 className="text-3xl font-black text-white mb-6">🕒 {selectedDelay.date}</h3>
             <div className="space-y-4 text-white">
-              <p><strong>Estado:</strong> {selectedDelay.kitchen_status}</p>
-              <p><strong>Tiempo transcurrido:</strong> {selectedDelay.elapsed_minutes} minutos</p>
-              <p><strong>Asignada:</strong> {selectedDelay.assigned_at || 'N/A'}</p>
-              <p><strong>Creada:</strong> {selectedDelay.created_at}</p>
-              {selectedDelay.chef_user_id && (
-                <p><strong>Chef ID:</strong> {selectedDelay.chef_user_id}</p>
-              )}
+              <p><strong>Tardanzas:</strong> {selectedDelay.delay_count}</p>
+              <p><strong>Promedio retraso:</strong> {Math.round(selectedDelay.avg_delay_minutes)} min</p>
             </div>
           </div>
         </div>
@@ -246,15 +354,8 @@ const Critico = () => {
       {selectedStock && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button
-              onClick={() => setSelectedStock(null)}
-              className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl"
-            >
-              ✕
-            </button>
-            <h3 className="text-3xl font-black text-white mb-6">
-              📦 {selectedStock.product_name}
-            </h3>
+            <button onClick={() => setSelectedStock(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <h3 className="text-3xl font-black text-white mb-6">📦 {selectedStock.product_name}</h3>
             <div className="space-y-4 text-white">
               <p><strong>Categoría:</strong> {selectedStock.category || 'N/A'}</p>
               <p><strong>Stock actual:</strong> {selectedStock.stock_actual}</p>
@@ -265,9 +366,7 @@ const Critico = () => {
               <p className={`font-bold text-xl ${selectedStock.estado === 'inexistente' ? 'text-red-400' : 'text-amber-400'}`}>
                 Estado: {selectedStock.estado.toUpperCase()}
               </p>
-              {selectedStock.descripcion && (
-                <p><strong>Descripción:</strong> {selectedStock.descripcion}</p>
-              )}
+              {selectedStock.descripcion && <p><strong>Descripción:</strong> {selectedStock.descripcion}</p>}
             </div>
           </div>
         </div>
@@ -277,34 +376,37 @@ const Critico = () => {
       {selectedSale && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <button
-              onClick={() => setSelectedSale(null)}
-              className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl"
-            >
-              ✕
-            </button>
-            <h3 className="text-3xl font-black text-white mb-6">
-              📉 {selectedSale.product_name}
-            </h3>
+            <button onClick={() => setSelectedSale(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <h3 className="text-3xl font-black text-white mb-6">📉 {selectedSale.product_name}</h3>
             <div className="space-y-4 text-white">
-              <p><strong>Ventas hoy:</strong> {selectedSale.sales_today}</p>
+              <p><strong>Fecha:</strong> {selectedSale.date}</p>
+              <p><strong>Ventas:</strong> {selectedSale.sales_count}</p>
               <p><strong>Precio:</strong> ${selectedSale.precio}</p>
-              {selectedSale.descuento > 0 && (
-                <p><strong>Descuento:</strong> {selectedSale.descuento}%</p>
-              )}
+              {selectedSale.descuento > 0 && <p><strong>Descuento:</strong> {selectedSale.descuento}%</p>}
               <p><strong>Trending:</strong> {selectedSale.is_trending ? '✅ Sí' : '❌ No'}</p>
-              {selectedSale.descripcion && (
-                <p><strong>Descripción:</strong> {selectedSale.descripcion}</p>
-              )}
+              {selectedSale.descripcion && <p><strong>Descripción:</strong> {selectedSale.descripcion}</p>}
               {selectedSale.image_url && (
-                <div className="mt-4">
-                  <img
-                    src={selectedSale.image_url}
-                    alt={selectedSale.product_name}
-                    className="w-full h-48 object-cover rounded-2xl"
-                  />
-                </div>
+                <img src={selectedSale.image_url} alt={selectedSale.product_name} className="w-full h-48 object-cover rounded-2xl mt-4" />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL QUEJAS */}
+      {selectedComplaint && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--primario)] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
+            <button onClick={() => setSelectedComplaint(null)} className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl">✕</button>
+            <h3 className="text-3xl font-black text-white mb-6">⚠️ Orden #{selectedComplaint.order_number}</h3>
+            <div className="space-y-4 text-white">
+              <p><strong>Tipo:</strong> {selectedComplaint.complaint_type}</p>
+              <p><strong>Descripción:</strong> {selectedComplaint.descripcion}</p>
+              <p><strong>Severidad:</strong> {selectedComplaint.severidad}</p>
+              <p><strong>Estado:</strong> {selectedComplaint.estado}</p>
+              <p><strong>Fecha:</strong> {selectedComplaint.created_at}</p>
+              {selectedComplaint.user_name && <p><strong>Usuario:</strong> {selectedComplaint.user_name}</p>}
+              {selectedComplaint.user_email && <p><strong>Email:</strong> {selectedComplaint.user_email}</p>}
             </div>
           </div>
         </div>

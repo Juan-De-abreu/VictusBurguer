@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 27-07-2026 a las 03:59:41
--- Versión del servidor: 8.4.7
--- Versión de PHP: 8.3.28
+-- Tiempo de generación: 26-08-2026 a las 16:31:49
+-- Versión del servidor: 9.1.0
+-- Versión de PHP: 8.3.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -77,6 +77,27 @@ INSERT INTO `categories` (`category_id`, `nombre_categoria`) VALUES
 (1, 'desayuno'),
 (2, 'almuerzo'),
 (3, 'cena');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `complaints`
+--
+
+DROP TABLE IF EXISTS `complaints`;
+CREATE TABLE IF NOT EXISTS `complaints` (
+  `complaint_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `tipo` varchar(50) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `descripcion` text COLLATE utf8mb4_spanish2_ci,
+  `severidad` enum('baja','media','alta') COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `estado` enum('pendiente','en_proceso','resuelta') COLLATE utf8mb4_spanish2_ci DEFAULT 'pendiente',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`complaint_id`),
+  KEY `order_id` (`order_id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 -- --------------------------------------------------------
 
@@ -184,7 +205,14 @@ CREATE TABLE IF NOT EXISTS `inventory_alerts` (
   PRIMARY KEY (`alert_id`),
   KEY `idx_status_created` (`status`,`created_at`),
   KEY `fk_alert_item` (`item_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Volcado de datos para la tabla `inventory_alerts`
+--
+
+INSERT INTO `inventory_alerts` (`alert_id`, `item_id`, `alert_type`, `message`, `status`, `severity`, `created_at`, `resolved_at`, `resolved_by`) VALUES
+(1, 7, 'low_stock', 'Stock urgente: Aceite vegetal disponible 810, mínimo 1000', 'open', 'high', '2026-08-26 14:59:46', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -302,7 +330,7 @@ CREATE TABLE IF NOT EXISTS `inventory_items` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`item_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Volcado de datos para la tabla `inventory_items`
@@ -315,10 +343,11 @@ INSERT INTO `inventory_items` (`item_id`, `nombre`, `descripcion`, `tipo`, `unit
 (4, 'Tomate', 'Rodajas para preparación', 'ingrediente', 'kg', 1400.00, 40.00, 1000.00, 3000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
 (5, 'Lechuga', 'Hojas frescas', 'ingrediente', 'kg', 900.00, 20.00, 1000.00, 2500.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
 (6, 'Papas fritas', 'Guarnición principal', 'ingrediente', 'kg', 3200.00, 200.00, 1000.00, 7000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
-(7, 'Aceite vegetal', 'Aceite de fritura', 'ingrediente', 'litro', 800.00, 0.00, 1000.00, 4000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(7, 'Aceite vegetal', 'Aceite de fritura', 'ingrediente', 'litro', 1000.00, 0.00, 1000.00, 4000.00, 1, 1, '2026-07-21 17:52:54', '2026-08-26 15:00:20'),
 (8, 'Salsa especial', 'Salsa de la casa', 'ingrediente', 'litro', 600.00, 0.00, 1000.00, 2000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
 (9, 'Empaques para hamburguesa', 'Caja o envoltura para entrega', 'instrumento', 'unid', 5000.00, 500.00, 1000.00, 15000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
-(10, 'Guantes desechables', 'Protección para manipulación', 'instrumento', 'caja', 300.00, 0.00, 1000.00, 3000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+(10, 'Guantes desechables', 'Protección para manipulación', 'instrumento', 'caja', 300.00, 0.00, 1000.00, 3000.00, 1, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
+(11, 'Cebolla', 'Cebolla picada para toppings', 'ingrediente', 'kg', 0.00, 0.00, 1000.00, 3000.00, 1, 1, '2026-08-26 14:51:39', '2026-08-26 14:51:39');
 
 -- --------------------------------------------------------
 
@@ -365,7 +394,7 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`movement_id`),
   KEY `idx_item_date` (`item_id`,`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Volcado de datos para la tabla `inventory_movements`
@@ -381,7 +410,9 @@ INSERT INTO `inventory_movements` (`movement_id`, `item_id`, `movement_type`, `q
 (7, 7, 'in', 800.00, 'initial_load', 0, 'Carga inicial de aceite', 1, '2026-07-21 17:52:54'),
 (8, 8, 'in', 600.00, 'initial_load', 0, 'Carga inicial de salsa', 1, '2026-07-21 17:52:54'),
 (9, 9, 'in', 5000.00, 'initial_load', 0, 'Carga inicial de empaques', 1, '2026-07-21 17:52:54'),
-(10, 10, 'in', 300.00, 'initial_load', 0, 'Carga inicial de guantes', 1, '2026-07-21 17:52:54');
+(10, 10, 'in', 300.00, 'initial_load', 0, 'Carga inicial de guantes', 1, '2026-07-21 17:52:54'),
+(11, 7, 'in', 10.00, 'manual', 0, '', NULL, '2026-08-26 14:59:46'),
+(12, 7, 'in', 190.00, 'manual', 0, '', NULL, '2026-08-26 15:00:20');
 
 -- --------------------------------------------------------
 
@@ -506,11 +537,11 @@ CREATE TABLE IF NOT EXISTS `orders_clientes` (
   `total` decimal(12,2) NOT NULL DEFAULT '0.00',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `kitchen_status` enum('pendiente','en_cocina','cocinado','entregado','cancelado') COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
+  `kitchen_status` enum('pendiente','en_cocina','cocinado','entregado','cancelado') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'pendiente',
   `cooked_at` datetime DEFAULT NULL,
   `chef_user_id` int DEFAULT NULL,
   `served_at` datetime DEFAULT NULL,
-  `kitchen_notes` text COLLATE utf8mb4_spanish2_ci,
+  `kitchen_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci,
   `assigned_at` datetime DEFAULT NULL,
   `delayed_notified` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`order_id`),
@@ -582,7 +613,7 @@ CREATE TABLE IF NOT EXISTS `order_alerts` (
   `alert_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `message` text COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `seen` int NOT NULL,
   PRIMARY KEY (`alert_id`)
@@ -643,8 +674,8 @@ CREATE TABLE IF NOT EXISTS `order_notifications` (
   `notification_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `message` varchar(255) COLLATE utf8mb4_spanish2_ci NOT NULL,
-  `type` varchar(50) COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'info',
+  `message` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL DEFAULT 'info',
   `is_read` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`notification_id`)
@@ -772,6 +803,72 @@ INSERT INTO `product_bom` (`bom_id`, `product_id`, `item_id`, `quantity_required
 (15, 3, 6, 0.25, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
 (16, 3, 7, 0.05, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54'),
 (17, 3, 9, 1.00, 1, '2026-07-21 17:52:54', '2026-07-21 17:52:54');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `product_ingredients`
+--
+
+DROP TABLE IF EXISTS `product_ingredients`;
+CREATE TABLE IF NOT EXISTS `product_ingredients` (
+  `product_ingredient_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `item_id` int NOT NULL,
+  `quantity_required` decimal(10,2) NOT NULL,
+  `unit` varchar(50) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`product_ingredient_id`),
+  UNIQUE KEY `unique_product_ingredient` (`product_id`,`item_id`),
+  KEY `item_id` (`item_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+
+--
+-- Volcado de datos para la tabla `product_ingredients`
+--
+
+INSERT INTO `product_ingredients` (`product_ingredient_id`, `product_id`, `item_id`, `quantity_required`, `unit`, `active`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 0.15, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(2, 1, 4, 0.05, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(3, 1, 5, 0.03, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(4, 1, 6, 0.10, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(5, 2, 1, 0.10, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(6, 2, 6, 0.15, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(7, 2, 7, 0.05, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(8, 3, 1, 0.08, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(9, 3, 6, 0.10, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(10, 3, 7, 0.08, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(11, 4, 1, 0.15, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(12, 4, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(13, 4, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(14, 4, 4, 0.05, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(15, 4, 5, 0.03, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(16, 5, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(17, 5, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(18, 5, 5, 0.03, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(19, 5, 8, 0.03, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(20, 6, 1, 0.12, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(21, 6, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(22, 6, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(23, 6, 6, 0.15, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(24, 7, 1, 0.30, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(25, 7, 2, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(26, 7, 3, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(27, 7, 4, 0.08, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(28, 7, 5, 0.05, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(29, 8, 1, 0.18, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(30, 8, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(31, 8, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(32, 8, 8, 0.05, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(33, 9, 6, 0.25, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(34, 9, 3, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(35, 9, 7, 0.10, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(36, 10, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(37, 10, 6, 0.10, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(38, 10, 8, 0.03, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
+(39, 4, 11, 0.05, 'kg', 1, '2026-08-26 14:51:39', '2026-08-26 14:51:39');
 
 -- --------------------------------------------------------
 
