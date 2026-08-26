@@ -33,6 +33,9 @@ Sitio web responsive de restaurante **Victu's Burgers** con men√∫ hamburguesa m√
 
 # Actualizaciones
 
+### 25/8/2026
+- Creacion de criticos para  personal de contabilidad (responsive basico y visual sencillo para primero priorizar funcionamiento)
+
 ### 01/04/2026
 - finalizacion en ajustes de descuento, 100x100 funcional y aplicable desde cualquier cualquier punto, reutilizacion de codigo productcard
 

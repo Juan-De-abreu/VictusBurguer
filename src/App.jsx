@@ -25,6 +25,7 @@ import MenosVendido from "./Pages/Dashboard/MenosVendido";
 import AjustesPersonal from "./Pages/Dashboard/AjustesPersonal";
 import Favorites from "./Pages/Favorites";
 import InventarioResumido from "./Pages/Dashboard/Inventarioresumido";
+import Critico from "./Pages/Dashboard/Critico";
 import PedidosCulminados from "./Pages/Dashboard/Pedidosculminados";
 import PedidosPendientes from "./Pages/Dashboard/PedidosPendientes";
 
@@ -76,6 +77,7 @@ function App() {
                 <Route path="ajustes-de-cuenta" element={<RoleProtectedRoute allowedRoles={[1,2,3,4]}><AjustesPersonal /></RoleProtectedRoute>} />
                 {/* ADMIN SOLO (ID 4) y (ID 3) contador */}
                 <Route path="cuentas" element={<RoleProtectedRoute allowedRoles={[4]}><Cuentas /></RoleProtectedRoute>} />
+                <Route path="inventario-critico" element={<RoleProtectedRoute allowedRoles={[3]}><Critico /></RoleProtectedRoute>} />
                 <Route path="facturas" element={<RoleProtectedRoute allowedRoles={[4,3]}><Facturas /></RoleProtectedRoute>} />
                 <Route path="mas-vendido" element={<RoleProtectedRoute allowedRoles={[3,4]}><MasVendido /></RoleProtectedRoute>} />
                 <Route path="menos-vendido" element={<RoleProtectedRoute allowedRoles={[3,4]}><MenosVendido /></RoleProtectedRoute>} />
