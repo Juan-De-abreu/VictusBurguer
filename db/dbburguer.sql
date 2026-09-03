@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 26-08-2026 a las 16:31:49
--- Versión del servidor: 9.1.0
--- Versión de PHP: 8.3.14
+-- Tiempo de generación: 03-09-2026 a las 22:11:10
+-- Versión del servidor: 8.4.7
+-- Versión de PHP: 8.3.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
   `nombre_categoria` enum('desayuno','almuerzo','cena') NOT NULL,
   PRIMARY KEY (`category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
 --
 -- Volcado de datos para la tabla `categories`
@@ -89,10 +89,10 @@ CREATE TABLE IF NOT EXISTS `complaints` (
   `complaint_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int DEFAULT NULL,
   `user_id` int DEFAULT NULL,
-  `tipo` varchar(50) COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `descripcion` text COLLATE utf8mb4_spanish2_ci,
-  `severidad` enum('baja','media','alta') COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
-  `estado` enum('pendiente','en_proceso','resuelta') COLLATE utf8mb4_spanish2_ci DEFAULT 'pendiente',
+  `tipo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `descripcion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci,
+  `severidad` enum('baja','media','alta') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT NULL,
+  `estado` enum('pendiente','en_proceso','resuelta') CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci DEFAULT 'pendiente',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`complaint_id`),
   KEY `order_id` (`order_id`),
@@ -743,7 +743,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `image_url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`product_id`),
   KEY `category_id` (`category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 
 --
 -- Volcado de datos para la tabla `products`
@@ -755,11 +755,13 @@ INSERT INTO `products` (`product_id`, `category_id`, `nombre`, `descripcion`, `p
 (3, 1, 'Empanadas Trio', 'Set de 3 empanadas (queso, carne y pollo) acompañadas con salsa guasacaca.', 4.50, 50, 1, 'https://img.dbburguer.com/desayunos/empanadas.jpg'),
 (4, 3, 'Burger Clásica', 'Carne de res 150g, queso cheddar, lechuga fresh, tomate y cebolla morada.', 8.50, 50, 0, 'https://img.dbburguer.com/almuerzos/burger_clasica.jpg'),
 (5, 2, 'Crispy Chicken Sandwich', 'Pechuga de pollo apanada, salsa de miel y mostaza, pepinillos y pan brioche.', 9.00, 0, 1, 'https://img.dbburguer.com/almuerzos/chicken_crispy.jpg'),
-(6, 2, 'Combo Ejecutivo Burguer', 'Hamburguesa sencilla con papas fritas y bebida de 350ml.', 10.00, 50, 0, 'https://img.dbburguer.com/almuerzos/combo_ejecutivo.jpg'),
-(7, 3, 'The Monster Burguer', 'Doble carne de res (300g total), doble tocino, huevo frito, aros de cebolla y salsa especial.', 14.00, 100, 1, 'https://img.dbburguer.com/cenas/monster_burguer.jpg'),
-(8, 3, 'BBQ Bacon Burguer', 'Carne de res, bañado en salsa BBQ artesanal, cebolla caramelizada y mucho tocino.', 11.50, 0, 1, 'https://img.dbburguer.com/cenas/bbq_bacon.jpg'),
-(9, 3, 'Salchipapa Especial', 'Cama de papas fritas con salchicha troceada, queso fundido, maíz tierno y salsas.', 9.50, 0, 0, 'https://img.dbburguer.com/cenas/salchipapa.jpg'),
-(10, 3, 'Perro Caliente Especial', 'Salchicha de primera, cebolla picadita, papas ralladas, queso parmesano y trío de salsas.', 4.00, 0, 0, 'https://img.dbburguer.com/cenas/perro_especial.jpg');
+(6, 2, 'Combo Ejecutivo Burguer', 'Hamburguesa sencilla con papas fritas y bebida de 350ml.', 16.00, 26, 0, '/uploads/products/product_6a98c5aa083350_20651349_webp'),
+(7, 3, 'The Monster Burguer', 'Doble carne de res (300g total), doble tocino, huevo frito, aros de cebolla y salsa especial.', 14.00, 100, 1, '/uploads/products/6a98bf85ee6b1.webp'),
+(8, 3, 'BBQ Bacon Burguer', 'Carne de res, bañado en salsa BBQ artesanal, cebolla caramelizada y mucho tocino.', 11.50, 0, 1, '/uploads/products/6a98c0b717fb6.webp'),
+(9, 3, 'Salchipapa Especial', 'Cama de papas fritas con salchicha troceada, queso fundido, maíz tierno y salsas.', 9.50, 0, 0, '/uploads/products/6a9629b80132e.webp'),
+(10, 3, 'Perro Caliente Especial', 'Salchicha de primera, cebolla picadita, papas ralladas, queso parmesano y trío de salsas.', 4.00, 0, 0, '/uploads/products/6a9622db18637.webp'),
+(13, 1, 'salchicagada', '', 9.87, 0, 0, '/uploads/products/6a962b3adaa2d.webp'),
+(14, 1, 'culogediondo', '', 10.00, 0, 0, '/uploads/products/product_6a98c64531fa92_42137152_webp');
 
 -- --------------------------------------------------------
 
@@ -816,14 +818,14 @@ CREATE TABLE IF NOT EXISTS `product_ingredients` (
   `product_id` int NOT NULL,
   `item_id` int NOT NULL,
   `quantity_required` decimal(10,2) NOT NULL,
-  `unit` varchar(50) COLLATE utf8mb4_spanish2_ci NOT NULL,
+  `unit` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish2_ci NOT NULL,
   `active` tinyint(1) DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`product_ingredient_id`),
   UNIQUE KEY `unique_product_ingredient` (`product_id`,`item_id`),
   KEY `item_id` (`item_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish2_ci;
 
 --
 -- Volcado de datos para la tabla `product_ingredients`
@@ -849,26 +851,27 @@ INSERT INTO `product_ingredients` (`product_ingredient_id`, `product_id`, `item_
 (17, 5, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
 (18, 5, 5, 0.03, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
 (19, 5, 8, 0.03, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(20, 6, 1, 0.12, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(21, 6, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(22, 6, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(23, 6, 6, 0.15, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(24, 7, 1, 0.30, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(25, 7, 2, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(26, 7, 3, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(27, 7, 4, 0.08, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(28, 7, 5, 0.05, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(29, 8, 1, 0.18, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(30, 8, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(31, 8, 3, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(32, 8, 8, 0.05, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(33, 9, 6, 0.25, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(34, 9, 3, 2.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(35, 9, 7, 0.10, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(36, 10, 2, 1.00, 'unid', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(37, 10, 6, 0.10, 'kg', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(38, 10, 8, 0.03, 'litro', 1, '2026-08-26 14:51:38', '2026-08-26 14:51:38'),
-(39, 4, 11, 0.05, 'kg', 1, '2026-08-26 14:51:39', '2026-08-26 14:51:39');
+(20, 6, 1, 0.12, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:53:26'),
+(21, 6, 2, 1.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:53:26'),
+(22, 6, 3, 1.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:53:26'),
+(23, 6, 6, 0.15, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:53:26'),
+(24, 7, 1, 0.30, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:29:58'),
+(25, 7, 2, 2.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:29:58'),
+(26, 7, 3, 2.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:29:58'),
+(27, 7, 4, 0.08, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:29:58'),
+(28, 7, 5, 0.05, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:29:58'),
+(29, 8, 1, 0.18, 'kg', 0, '2026-08-26 14:51:38', '2026-09-03 00:35:03'),
+(30, 8, 2, 1.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:35:03'),
+(31, 8, 3, 1.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-03 00:35:03'),
+(32, 8, 8, 0.05, 'litro', 0, '2026-08-26 14:51:38', '2026-09-03 00:35:03'),
+(33, 9, 6, 0.25, 'kg', 0, '2026-08-26 14:51:38', '2026-09-01 01:26:13'),
+(34, 9, 3, 2.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-01 01:26:13'),
+(35, 9, 7, 0.10, 'litro', 0, '2026-08-26 14:51:38', '2026-09-01 01:26:13'),
+(36, 10, 2, 1.00, 'unid', 0, '2026-08-26 14:51:38', '2026-09-01 00:56:56'),
+(37, 10, 6, 0.10, 'kg', 0, '2026-08-26 14:51:38', '2026-09-01 00:56:56'),
+(38, 10, 8, 0.03, 'litro', 0, '2026-08-26 14:51:38', '2026-09-01 00:56:56'),
+(39, 4, 11, 0.05, 'kg', 1, '2026-08-26 14:51:39', '2026-08-26 14:51:39'),
+(40, 14, 2, 10.00, 'unid', 1, '2026-09-03 00:58:45', '2026-09-03 00:58:45');
 
 -- --------------------------------------------------------
 
