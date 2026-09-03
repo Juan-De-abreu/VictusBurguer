@@ -289,46 +289,60 @@ const MenuAjustes = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formDataImg = new FormData();
-    formDataImg.append('action', editMode ? 'update' : 'create');
-    formDataImg.append('product_id', formData.product_id || '');
-    formDataImg.append('nombre', formData.nombre);
-    formDataImg.append('category_id', formData.category_id);
-    formDataImg.append('descripcion', formData.descripcion);
-    formDataImg.append('precio', formData.precio);
-    formDataImg.append('descuento', formData.descuento);
-    formDataImg.append('is_trending', formData.is_trending ? 1 : 0);
-    
-    if (formData.image) {
-      formDataImg.append('image', formData.image);
-    }
-    
-    if (editMode && formData.imageToRemove) {
-      formDataImg.append('remove_image', 'true');
-    }
-    
-    formDataImg.append('ingredients', JSON.stringify(formData.ingredients));
+  const formDataImg = new FormData();
+  formDataImg.append('action', editMode ? 'update' : 'create');
+  formDataImg.append('product_id', formData.product_id || '');
+  formDataImg.append('nombre', formData.nombre);
+  formDataImg.append('category_id', formData.category_id);
+  formDataImg.append('descripcion', formData.descripcion);
+  formDataImg.append('precio', formData.precio);
+  formDataImg.append('descuento', formData.descuento);
+  formDataImg.append('is_trending', formData.is_trending ? 1 : 0);
 
+  if (formData.image) {
+    formDataImg.append('image', formData.image);
+  }
+
+  if (editMode && formData.imageToRemove) {
+    formDataImg.append('remove_image', 'true');
+  }
+
+  formDataImg.append('ingredients', JSON.stringify(formData.ingredients));
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/products`, {
+      method: 'POST',
+      body: formDataImg
+    });
+
+    // 1. Obtener la respuesta en texto plano para depurar
+    const rawText = await res.text();
+
+    // 2. Intentar parsear a JSON
+    let result;
     try {
-      const res = await fetch(`${API_BASE_URL}/products`, {
-        method: 'POST',
-        body: formDataImg
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        alert(editMode ? 'Producto actualizado' : 'Producto creado');
-        closeModal();
-        fetchAll();
-      } else {
-        alert('Error: ' + result.error);
-      }
-    } catch (err) {
-      alert('Error de conexión');
+      result = JSON.parse(rawText);
+    } catch (parseError) {
+      console.error('El servidor no devolvió un JSON válido. Respuesta recibida:', rawText);
+      alert('Error en el servidor. Revisa la consola para ver la respuesta completa.');
+      return;
     }
-  };
+
+    // 3. Evaluar el resultado de la API
+    if (result.success) {
+      alert(editMode ? 'Producto actualizado' : 'Producto creado');
+      closeModal();
+      fetchAll();
+    } else {
+      alert('Error devuelto por el servidor: ' + (result.error || 'Error desconocido'));
+    }
+  } catch (err) {
+    console.error('Error de red o conexión:', err);
+    alert('Error de conexión con el servidor');
+  }
+};
 
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
