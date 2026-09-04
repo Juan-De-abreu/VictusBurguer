@@ -563,65 +563,7 @@ try {
                 json_response(true, null, 'Producto eliminado');
             }
 
-            // Crear categoría
-            if ($action === 'create_category') {
-                if (empty($data['nombre_categoria'])) {
-                    json_response(false, null, 'nombre_categoria requerido', 400);
-                }
 
-                $stmt = $pdo->prepare("
-                    INSERT INTO categories (nombre_categoria)
-                    VALUES (:nombre_categoria)
-                ");
-
-                $stmt->execute([
-                    ':nombre_categoria' => trim($data['nombre_categoria'])
-                ]);
-
-                json_response(
-                    true,
-                    ['category_id' => (int)$pdo->lastInsertId()],
-                    'Categoría creada'
-                );
-            }
-
-            // Actualizar categoría
-            if ($action === 'update_category') {
-                if (!isset($data['category_id'], $data['nombre_categoria'])) {
-                    json_response(false, null, 'Faltan campos requeridos', 400);
-                }
-
-                $stmt = $pdo->prepare("
-                    UPDATE categories
-                    SET nombre_categoria = :nombre_categoria
-                    WHERE category_id = :category_id
-                ");
-
-                $stmt->execute([
-                    ':category_id' => (int)$data['category_id'],
-                    ':nombre_categoria' => trim($data['nombre_categoria'])
-                ]);
-
-                json_response(true, null, 'Categoría actualizada');
-            }
-
-            // Eliminar categoría
-            if ($action === 'delete_category') {
-                if (!isset($data['category_id'])) {
-                    json_response(false, null, 'category_id requerido', 400);
-                }
-
-                $stmt = $pdo->prepare("
-                    DELETE FROM categories
-                    WHERE category_id = :category_id
-                ");
-
-                $stmt->execute([
-                    ':category_id' => (int)$data['category_id']
-                ]);
-
-                json_response(true, null, 'Categoría eliminada');
-            }
 
             json_response(false, null, 'Acción no válida', 400);
             break;
