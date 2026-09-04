@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 03-09-2026 a las 22:11:10
--- Versión del servidor: 8.4.7
--- Versión de PHP: 8.3.28
+-- Tiempo de generación: 04-09-2026 a las 22:59:29
+-- Versión del servidor: 9.1.0
+-- Versión de PHP: 8.3.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -65,7 +65,7 @@ INSERT INTO `addresses` (`address_id`, `user_id`, `calle`, `ciudad`, `latitud`, 
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE IF NOT EXISTS `categories` (
   `category_id` int NOT NULL AUTO_INCREMENT,
-  `nombre_categoria` enum('desayuno','almuerzo','cena') NOT NULL,
+  `nombre_categoria` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   PRIMARY KEY (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS `categories` (
 INSERT INTO `categories` (`category_id`, `nombre_categoria`) VALUES
 (1, 'desayuno'),
 (2, 'almuerzo'),
-(3, 'cena');
+(3, 'cena'),
+(4, 'Bebidas');
 
 -- --------------------------------------------------------
 
@@ -760,8 +761,7 @@ INSERT INTO `products` (`product_id`, `category_id`, `nombre`, `descripcion`, `p
 (8, 3, 'BBQ Bacon Burguer', 'Carne de res, bañado en salsa BBQ artesanal, cebolla caramelizada y mucho tocino.', 11.50, 0, 1, '/uploads/products/6a98c0b717fb6.webp'),
 (9, 3, 'Salchipapa Especial', 'Cama de papas fritas con salchicha troceada, queso fundido, maíz tierno y salsas.', 9.50, 0, 0, '/uploads/products/6a9629b80132e.webp'),
 (10, 3, 'Perro Caliente Especial', 'Salchicha de primera, cebolla picadita, papas ralladas, queso parmesano y trío de salsas.', 4.00, 0, 0, '/uploads/products/6a9622db18637.webp'),
-(13, 1, 'salchicagada', '', 9.87, 0, 0, '/uploads/products/6a962b3adaa2d.webp'),
-(14, 1, 'culogediondo', '', 10.00, 0, 0, '/uploads/products/product_6a98c64531fa92_42137152_webp');
+(13, 1, 'salchicagada', '', 9.87, 0, 0, '/uploads/products/6a962b3adaa2d.webp');
 
 -- --------------------------------------------------------
 
@@ -871,7 +871,7 @@ INSERT INTO `product_ingredients` (`product_ingredient_id`, `product_id`, `item_
 (37, 10, 6, 0.10, 'kg', 0, '2026-08-26 14:51:38', '2026-09-01 00:56:56'),
 (38, 10, 8, 0.03, 'litro', 0, '2026-08-26 14:51:38', '2026-09-01 00:56:56'),
 (39, 4, 11, 0.05, 'kg', 1, '2026-08-26 14:51:39', '2026-08-26 14:51:39'),
-(40, 14, 2, 10.00, 'unid', 1, '2026-09-03 00:58:45', '2026-09-03 00:58:45');
+(40, 14, 2, 10.00, 'unid', 0, '2026-09-03 00:58:45', '2026-09-04 22:21:32');
 
 -- --------------------------------------------------------
 
